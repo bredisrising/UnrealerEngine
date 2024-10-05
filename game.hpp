@@ -3,7 +3,7 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-
+#include <glfw/glfw3.h>
 #include <random>
 
 constexpr float HEIGHT = 1080.f;
@@ -26,8 +26,9 @@ class Random {
 
 class Time {
     public:
-        static float currentTime;
+        // static float currentTime;
         static float deltatime;
+        static float currentTime();
 };
 
 

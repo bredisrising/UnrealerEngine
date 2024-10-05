@@ -1,3 +1,4 @@
+#define GLFW_INCLUDE_VULKAN
 #include "GLFW/glfw3.h"
 #include "api.hpp"
 #include <iostream>
@@ -32,7 +33,7 @@ int main() {
     // std::cin >> numFluidParticles;
     // std::cout << std::endl;
 
-    Fluid fluid(2000);
+    Fluid fluid(12000);
 
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
@@ -57,6 +58,8 @@ int main() {
     double currentTime = glfwGetTime();
     double fps = 0;
 
+    fluid.lastPhysicsTime = Time::currentTime();
+    std::cout << "Initial lastPhysicsTime: " << fluid.lastPhysicsTime << std::endl;
     while (!glfwWindowShouldClose(window)) {    
         glfwPollEvents();
 
@@ -68,7 +71,6 @@ int main() {
         api->drawframe(fluid.numParticles, vertexBuffer, 0);
 
         currentTime = glfwGetTime();
-        Time::currentTime = currentTime;
         fps = 1 / (currentTime - previousTime);
 
         Time::deltatime = currentTime - previousTime;

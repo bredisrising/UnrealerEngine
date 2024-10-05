@@ -17,6 +17,7 @@
 //     createSyncObjects();
 // }
 
+
 API::API(GLFWwindow* window): window(window), currentFrame(0) {
 
 }

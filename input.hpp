@@ -5,6 +5,7 @@
 class Input {
     public:
         static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
+        
         static glm::vec2 getMouseMoveVector();
 
     private:

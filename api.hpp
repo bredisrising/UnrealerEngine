@@ -1,5 +1,5 @@
 #pragma once
-//#define GLFW_INCLUDE_VULKAN
+#define GLFW_INCLUDE_VULKAN
 #include <vector>
 #include "game.hpp"
 #include "vulkan/vulkan.h"

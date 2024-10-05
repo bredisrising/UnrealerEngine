@@ -2,7 +2,6 @@
 #include <vector>
 #include "object.hpp"
 #include <random>
-// #include "input.hpp"
 #include <math.h>
 #include <algorithm>
 
@@ -13,14 +12,14 @@ struct Particle {
     float density;
     float property;
     glm::vec<2, int8_t, glm::qualifier::defaultp> cell;
-    Particle(): position(), positionLast(), acceleration{0.0f, 0.7f} {
+    Particle(): position(), positionLast(), acceleration{0.0f, 0.8f} {
     };
 };
 
 struct GridKey {
     int particleIndex;
     int hashKey;
-    GridKey(uint32_t h, int ppi): hashKey(h), particleIndex(ppi) {};
+    GridKey(int h, int ppi): hashKey(h), particleIndex(ppi) {};
     GridKey(): hashKey(INT_MAX), particleIndex(0) {};
 };
 
@@ -32,6 +31,7 @@ class Fluid {
         int maxParticles;
         std::vector<Circle> particleCircles;
         std::vector<Particle> particles;
+        float lastPhysicsTime = 0.0f;
     private:
         void resolvePPCollisions(int xCellIndex, int yCellIndex, int otherXCell, int otherYCell, bool doCollide);
         float smoothingKernel(float radius, float dist);
@@ -41,29 +41,33 @@ class Fluid {
         static bool compareHashKey(GridKey& key1, GridKey& key2);
 
         void updateSpatialLookup();
+        void createParticle();
+        void doPhysicsStep();
 
         glm::vec2 calcPropertyGradient(glm::vec2 samplePoint);
     
-        float collisionDamping = .75f;
+        float collisionDamping = .5f;
         float smoothingRadius = .12f;
         const float mass = .1;
         float targetDensity = .275f;
         float pressureMultiplier = 0.05f;
 
-        float particleRadius = 17.5f;
-        float radius = 17.5f;
+        float radius = 10.0f;
         float normalizedRadius = radius / HEIGHT;
-        float normaliedRadius2 = 2 * normalizedRadius;
+        float normalizedRadius2 = 2 * normalizedRadius;
 
-        float spawnRate = 50.0f;
-        float lastTime = 0.0f;
+        float spawnRate = 300.0f;
+        float lastParticleCreateTime = 0.0f;
 
-        float lastPhysicsTime = 0.0f;
-        float physicsRate = 1.0f/60.0f;
+        float physicsStepInterval = 1.0f/480.0f;
 
         std::vector<GridKey> keys;
         std::vector<int> startIndices;
-        int numCells = 10;
+        
+        float cellSize = normalizedRadius2 * 3;
+        int numCells = 2.0f / cellSize;
 
-        float gridSize = 1.0f / (numCells / 2.0f);
-};  
+        // int numCells = 64;
+        // float cellSize = 2.0f / numCells;
+    
+}; 
