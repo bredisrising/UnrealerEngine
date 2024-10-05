@@ -76,7 +76,7 @@ int main() {
         Time::deltatime = currentTime - previousTime;
 
         std::stringstream ss;
-        ss << "Unrealer Engine " << "FPS: " << fps << "Num Particles: " << fluid.numParticles;
+        ss << "Unrealer Engine " << "FPS: " << fps << " Num Particles: " << fluid.numParticles << " Current Time: " << Time::currentTime();
 
         glfwSetWindowTitle(window, ss.str().c_str());
         previousTime = currentTime;

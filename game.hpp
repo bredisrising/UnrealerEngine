@@ -3,6 +3,8 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+#define GLFW_INCLUDE_VULKAN
 #include <glfw/glfw3.h>
 #include <random>
 

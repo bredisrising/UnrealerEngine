@@ -130,9 +130,9 @@ void Fluid::doPhysicsStep(){
 
         particles[i].positionLast = particles[i].position;
 
-        if (glm::length(displacement) > .02f){
-            displacement = glm::normalize(displacement) * .02f;
-        }
+        // if (glm::length(displacement) > .02f){
+        //     displacement = glm::normalize(displacement) * .02f;
+        // }
 
         particles[i].position = particles[i].position + displacement + particles[i].acceleration * (physicsStepInterval * physicsStepInterval);
         //particles[i].acceleration = {0.0f, 1.0f};
@@ -146,31 +146,23 @@ void Fluid::doPhysicsStep(){
 }
 
 void Fluid::step() {
+
+    physicsStepInterval = glm::max(Time::deltatime, minPhysicsStepInterval); // adaptive physics rate to prevent fps collapse?
+
     float timeElapsedSinceLastPhysicsStep = Time::currentTime() - lastPhysicsTime;
+    float timeElapsedSinceLastParticleCreation = Time::currentTime() - lastParticleCreateTime;
+    
     float numSteps = timeElapsedSinceLastPhysicsStep * (1.0f / physicsStepInterval);
-
-    float numParticlesToCreate = numParticles >= maxParticles ? 0.0f : timeElapsedSinceLastPhysicsStep * spawnRate;
-    //numParticlesToCreate = glm::clamp(numParticlesToCreate, 0U, 100U);
-    if (numParticlesToCreate < 1.0f && numParticles < maxParticles) {
-        if (Time::currentTime() > lastParticleCreateTime + (1.0f/spawnRate)) {
-            createParticle();
-            lastParticleCreateTime = Time::currentTime();
-        }
-    }
+    float numParticlesToCreate = numParticles >= maxParticles ? 0.0f : timeElapsedSinceLastParticleCreation * spawnRate;
     for (int particle = 0; particle < (int) numParticlesToCreate; particle++) {
-        createParticle();
-    }
-
-    if (numSteps < 1.0f && numSteps > 0.0f) {
-        if (Time::currentTime() > lastPhysicsTime + physicsStepInterval) {
-            doPhysicsStep();
-            lastPhysicsTime = Time::currentTime();
-        }
+        createParticle();   
+        lastParticleCreateTime += 1.0f / spawnRate;
     }
     for (int physicStep = 0; physicStep < (int)numSteps; physicStep++){
         doPhysicsStep();
-        lastPhysicsTime = Time::currentTime();
+        lastPhysicsTime += physicsStepInterval;
     }
+
 }
 
 void Fluid::resolvePPCollisions (int xCellIndex, int yCellIndex, int otherXCell, int otherYCell, bool doCollide) {    
