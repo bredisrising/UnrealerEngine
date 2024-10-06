@@ -6,7 +6,7 @@ layout(location = 2) in float radius;
 
 layout(location = 0) out vec3 fragColor;
 
-float ratio = 1920.0/1920.0;
+float ratio = 950.0/950.0;
 
 void main() {
     int quadIndex = gl_VertexIndex % 6;

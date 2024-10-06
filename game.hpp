@@ -8,8 +8,8 @@
 #include <glfw/glfw3.h>
 #include <random>
 
-constexpr float HEIGHT = 1080.f;
-constexpr float WIDTH = 1080.f;
+constexpr float HEIGHT = 950.f;
+constexpr float WIDTH = 950.f;
 
 constexpr float BOUNDX = WIDTH / HEIGHT;
 constexpr float BOUNDY = 1.0f;

@@ -11,6 +11,8 @@
 
 int main() {
 
+    std::vector<float> fpsValues;
+
     GLFWwindow* window;
 
     if(!glfwInit()){
@@ -33,7 +35,7 @@ int main() {
     // std::cin >> numFluidParticles;
     // std::cout << std::endl;
 
-    Fluid fluid(12000);
+    Fluid fluid(20000);
 
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
@@ -73,10 +75,20 @@ int main() {
         currentTime = glfwGetTime();
         fps = 1 / (currentTime - previousTime);
 
+        fpsValues.push_back(fps);
+        if (fpsValues.size() > 50) {
+            fpsValues.erase(fpsValues.begin());
+        }
+
+        float averageFPS = std::accumulate(fpsValues.begin(), fpsValues.end(), 0) / fpsValues.size();
+
+
         Time::deltatime = currentTime - previousTime;
 
         std::stringstream ss;
-        ss << "Unrealer Engine " << "FPS: " << fps << " Num Particles: " << fluid.numParticles << " Current Time: " << Time::currentTime();
+        ss << "Unrealer Engine " << "FPS: " << fps << " Average FPS: " << averageFPS << " Num Particles: " << fluid.numParticles << " Current Time: " << Time::currentTime();
+
+
 
         glfwSetWindowTitle(window, ss.str().c_str());
         previousTime = currentTime;

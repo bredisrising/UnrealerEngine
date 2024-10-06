@@ -5,14 +5,21 @@ std::vector<char> Helper::readFile(const std::string& fileName) {
     // ifstream stands of input-file stream
     std::ifstream file(fileName, std::ios::ate | std::ios::binary);
 
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open file " + fileName);
+    }
+
     size_t fileSize = (size_t)file.tellg();
+    if (fileSize == 0) {
+        return std::vector<char>();
+    }
+
     std::vector<char> buffer(fileSize);
 
     file.seekg(0);
     file.read(buffer.data(), fileSize);
     file.close();
     
-
     return buffer;
 }
 

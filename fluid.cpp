@@ -20,16 +20,20 @@ Fluid::Fluid(int num): numParticles(0) {
 
     //     particleCircles[particleIndex].position[0] = Random::getRandom() * BOUNDX;
     //     particleCircles[particleIndex].position[1] = Random::getRandom();    
-    //     particleCircles[particleIndex].color[0] = Random::getRandom() * .5 + .5;
-    //     particleCircles[particleIndex].color[1] = Random::getRandom() * .5 + .5;
-    //     particleCircles[particleIndex].color[2] = Random::getRandom() * .5 + .5;
+    //     // particleCircles[particleIndex].color[0] = Random::getRandom() * .5 + .5;
+    //     // particleCircles[particleIndex].color[1] = Random::getRandom() * .5 + .5;
+    //     // particleCircles[particleIndex].color[2] = Random::getRandom() * .5 + .5;
 
     //     particleCircles[particleIndex].radius = radius;
     //     particles[particleIndex].position = particleCircles[particleIndex].position;
+    //     // particles[particleIndex].positionLast = particles[particleIndex].position;
+    //     particles[particleIndex].positionLast[0] = particleCircles[particleIndex].position[0]-Random::getRandom()*.005f;
+    //     particles[particleIndex].positionLast[1] = particleCircles[particleIndex].position[1]-Random::getRandom()*.005f;   
 
     //     numParticles++;
     // }
 }
+
 
 bool Fluid::compareHashKey(GridKey& key1, GridKey& key2) {
     return key1.hashKey < key2.hashKey;
@@ -65,17 +69,17 @@ void Fluid::updateSpatialLookup() {
 void Fluid::createParticle() {
     int newIndex = numParticles;
 
-    // particleCircles[newIndex].position[0] = Random::getRandom()*.8;
-    // particleCircles[newIndex].position[1] = Random::getRandom()*.8;   
-    // particles[newIndex].position = particleCircles[newIndex].position;
-    // particles[newIndex].positionLast[0] = particleCircles[newIndex].position[0]-Random::getRandom()*.03f;
-    // particles[newIndex].positionLast[1] = particleCircles[newIndex].position[1]-Random::getRandom()*.03f;
-
-    particleCircles[newIndex].position[0] = -BOUNDX + .1;
-    particleCircles[newIndex].position[1] = -BOUNDY + .1;   
+    particleCircles[newIndex].position[0] = Random::getRandom()*.8;
+    particleCircles[newIndex].position[1] = Random::getRandom()*.8;   
     particles[newIndex].position = particleCircles[newIndex].position;
-    particles[newIndex].positionLast[0] = particleCircles[newIndex].position[0]-0.02f;
-    particles[newIndex].positionLast[1] = particleCircles[newIndex].position[1]; 
+    particles[newIndex].positionLast[0] = particleCircles[newIndex].position[0]-Random::getRandom()*.005f;
+    particles[newIndex].positionLast[1] = particleCircles[newIndex].position[1]-Random::getRandom()*.005f;
+
+    // particleCircles[newIndex].position[0] = BOUNDX - .1;
+    // particleCircles[newIndex].position[1] = -.8;   
+    // particles[newIndex].position = particleCircles[newIndex].position;
+    // particles[newIndex].positionLast[0] = particleCircles[newIndex].position[0]-0.005;
+    // particles[newIndex].positionLast[1] = particleCircles[newIndex].position[1]-0.02; 
 
     particleCircles[newIndex].color[0] = .1;
     particleCircles[newIndex].color[1] = .9;
@@ -123,18 +127,17 @@ void Fluid::doPhysicsStep(){
             particles[i].positionLast[1] = particles[i].position[1] +
                 (diff) * collisionDamping;
         }
-    }
+    
 
-    for (int i = 0; i < numParticles; i++) {
         glm::vec2 displacement = particles[i].position - particles[i].positionLast;
 
         particles[i].positionLast = particles[i].position;
 
-        // if (glm::length(displacement) > .02f){
-        //     displacement = glm::normalize(displacement) * .02f;
-        // }
+        if (glm::length(displacement) > .02f){
+            displacement = glm::normalize(displacement) * .02f;
+        }
 
-        particles[i].position = particles[i].position + displacement + particles[i].acceleration * (physicsStepInterval * physicsStepInterval);
+        particles[i].position = particles[i].position + displacement + (particles[i].acceleration - displacement*60.0f) * (physicsStepInterval * physicsStepInterval);
         //particles[i].acceleration = {0.0f, 1.0f};
 
         particleCircles[i].position[0] = particles[i].position[0];
@@ -147,73 +150,87 @@ void Fluid::doPhysicsStep(){
 
 void Fluid::step() {
 
-    physicsStepInterval = glm::max(Time::deltatime, minPhysicsStepInterval); // adaptive physics rate to prevent fps collapse?
-
     float timeElapsedSinceLastPhysicsStep = Time::currentTime() - lastPhysicsTime;
     float timeElapsedSinceLastParticleCreation = Time::currentTime() - lastParticleCreateTime;
-    
+
+    // // with interval adaption - SHOULDN'T SLOW DOWN BUT FPS WILL CRASH AND SIMULATION WILL CRAP ITSELF
+    // physicsStepInterval = glm::max(Time::deltatime, minPhysicsStepInterval); // adaptive physics rate to prevent fps collapse and slowdown?
+    // physicsStepInterval = Time::deltatime;
     float numSteps = timeElapsedSinceLastPhysicsStep * (1.0f / physicsStepInterval);
     float numParticlesToCreate = numParticles >= maxParticles ? 0.0f : timeElapsedSinceLastParticleCreation * spawnRate;
+    
     for (int particle = 0; particle < (int) numParticlesToCreate; particle++) {
-        createParticle();   
-        lastParticleCreateTime += 1.0f / spawnRate;
+        if (numParticles < maxParticles){
+            createParticle();   
+            lastParticleCreateTime += 1.0f / spawnRate;
+        }
     }
+    
+
     for (int physicStep = 0; physicStep < (int)numSteps; physicStep++){
         doPhysicsStep();
         lastPhysicsTime += physicsStepInterval;
     }
 
+    
+    // no interval adaption - SIMULTATION SHOULD SLOW DOWN
+    // if (numParticles < maxParticles && timeElapsedSinceLastParticleCreation > (1.0f / spawnRate)) {
+    //     createParticle();
+    //     lastParticleCreateTime = Time::currentTime();
+    // }
+
+    // if (timeElapsedSinceLastPhysicsStep > physicsStepInterval) {
+    //     lastPhysicsTime = Time::currentTime();
+    //     doPhysicsStep();
+    // }
+
+
 }
 
 void Fluid::resolvePPCollisions (int xCellIndex, int yCellIndex, int otherXCell, int otherYCell, bool doCollide) {    
-    int cellkey = yCellIndex * numCells + xCellIndex;
-    int otherkey = otherYCell * numCells + otherXCell;
-
     if (xCellIndex < 0 || xCellIndex > numCells-1)return;
     if (yCellIndex < 0 || yCellIndex > numCells-1)return;
     if (otherXCell < 0 || otherXCell > numCells-1)return;
     if (otherYCell < 0 || otherYCell > numCells-1)return;
 
-    int thisStart = startIndices[cellkey];  
+    int cellkey = yCellIndex * numCells + xCellIndex;
+    int otherkey = otherYCell * numCells + otherXCell;
+
+
+    int thisStart = startIndices[cellkey];
     if (thisStart == INT_MAX) return;
     int otherStart = startIndices[otherkey];
     if (otherStart == INT_MAX) return;
 
-    for (int i = thisStart; i < numParticles; i++){
-        if (keys.at(i).hashKey != cellkey) break;
-        int thispi = keys.at(i).particleIndex;
-        for (int j = otherStart; j < numParticles; j++){
-            int thatpi = keys.at(j).particleIndex;
+    for (int i = thisStart; keys[i].hashKey == cellkey; i++){
+        int thispi = keys[i].particleIndex;
+        for (int j = otherStart; keys[j].hashKey == otherkey; j++){
+            int thatpi = keys[j].particleIndex;
             if (thispi == thatpi) continue;
-            if (keys.at(j).hashKey != otherkey) break;
             float distance = glm::length(particles[thispi].position - particles[thatpi].position);
             if (distance < normalizedRadius2){
                 // std::cout << " overlapping ";
-                glm::vec2 thisParticleVelocity = particles[thispi].position - particles[thispi].positionLast;
-                glm::vec2 thatParticleVelocity = particles[thatpi].position - particles[thatpi].positionLast;
-                float thisSpeed = glm::length(thisParticleVelocity);
-                float thatSpeed = glm::length(thatParticleVelocity);
-
+                // glm::vec2 thisParticleVelocity = particles[thispi].position - particles[thispi].positionLast;
+                // glm::vec2 thatParticleVelocity = particles[thatpi].position - particles[thatpi].positionLast;
+                // float thisSpeed = glm::length(thisParticleVelocity);
+                // float thatSpeed = glm::length(thatParticleVelocity);
 
                 // overlapping
                 float overlap = (distance - normalizedRadius2) / 2.0f;
                 glm::vec2 displacement = particles[thispi].position - particles[thatpi].position;
-                glm::vec2 collisionNormal = glm::normalize(displacement);
+                glm::vec2 collisionNormal = displacement / distance;
 
-                glm::vec2 collisionTangent;
-                collisionTangent[0] = -collisionNormal[1];
-                collisionTangent[1] = collisionNormal[0];
+                // glm::vec2 collisionTangent;
+                // collisionTangent[0] = -collisionNormal[1];
+                // collisionTangent[1] = collisionNormal[0];
 
-                float thisParticleTan = glm::dot(thisParticleVelocity, collisionTangent);
-                float thatParticleTan = glm::dot(thatParticleVelocity, collisionTangent);
+                // float thisParticleTan = glm::dot(thisParticleVelocity, collisionTangent);
+                // float thatParticleTan = glm::dot(thatParticleVelocity, collisionTangent);
 
-                float thisParticleNorm = glm::dot(thisParticleVelocity, collisionNormal);
-                float thatParticleNorm = glm::dot(thatParticleVelocity, collisionNormal);
+                // float thisParticleNorm = glm::dot(thisParticleVelocity, collisionNormal);
+                // float thatParticleNorm = glm::dot(thatParticleVelocity, collisionNormal);
 
-                float m1 = thatParticleNorm;  
-                float m2 = thisParticleNorm;  
-
-                float overlapStep = -0.5f * (normalizedRadius2 - distance);
+                // float overlapStep = -0.5f * (normalizedRadius2 - distance);
                 
                 particles[thispi].position -= collisionNormal * overlap;
                 particles[thatpi].position += collisionNormal * overlap;

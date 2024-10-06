@@ -45,33 +45,34 @@ class Fluid {
         void doPhysicsStep();
 
         glm::vec2 calcPropertyGradient(glm::vec2 samplePoint);
-    
-        float collisionDamping = .5f;
-        float smoothingRadius = .12f;
+
+
+        float collisionDamping = .75f;
+        float smoothingRadius = .25f;
         const float mass = .1;
         float targetDensity = .275f;
         float pressureMultiplier = 0.05f;
 
-        float radius = 10.0f;
+        float radius = 5.0f;
         float normalizedRadius = radius / HEIGHT;
         float normalizedRadius2 = 2 * normalizedRadius;
 
-        float spawnRate = 100.0f;
+        float spawnRate = 250.0f;
         float minSpawnRate = 100.0f;
 
 
         float lastParticleCreateTime = 0.0f;
 
-        float physicsStepInterval = 1.0f/120.0f;
-        float minPhysicsStepInterval = 1.0f/120.0f;
+        float physicsStepInterval = 1.0f/240.0f;
+        float minPhysicsStepInterval = 1.0f/240.0f;
 
         std::vector<GridKey> keys;
         std::vector<int> startIndices;
         
-        float cellSize = normalizedRadius2 * 3;
+        float cellSize = normalizedRadius2 * 2; // SET TO TIME 1 FOR BEST FPS
         int numCells = 2.0f / cellSize;
 
-        // int numCells = 64;
+        // int numCells = 100;
         // float cellSize = 2.0f / numCells;
     
 }; 
