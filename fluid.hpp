@@ -1,9 +1,12 @@
 #pragma once
 #include <vector>
 #include "object.hpp"
+#include "colorgradient.hpp"
+#include "helper.hpp"
 #include <random>
 #include <math.h>
 #include <algorithm>
+#include <fstream>
 
 struct Particle {
     glm::vec2 position;
@@ -25,11 +28,10 @@ struct GridKey {
 
 class Fluid {
     public:
-        Fluid(int num);
+        Fluid(Circle* mapped, int num);
         void step();
         int numParticles;
-        int maxParticles;
-        std::vector<Circle> particleCircles;
+        int maxParticles;      
         std::vector<Particle> particles;
         float lastPhysicsTime = 0.0f;
     private:
@@ -45,6 +47,7 @@ class Fluid {
         void doPhysicsStep();
 
         glm::vec2 calcPropertyGradient(glm::vec2 samplePoint);
+        ColorGradient colorgradient;
 
 
         float collisionDamping = .75f;
@@ -53,13 +56,12 @@ class Fluid {
         float targetDensity = .275f;
         float pressureMultiplier = 0.05f;
 
-        float radius = 5.0f;
+        float radius = 4.25f;
         float normalizedRadius = radius / HEIGHT;
         float normalizedRadius2 = 2 * normalizedRadius;
 
-        float spawnRate = 250.0f;
+        float spawnRate = 600.0f;
         float minSpawnRate = 100.0f;
-
 
         float lastParticleCreateTime = 0.0f;
 
@@ -68,9 +70,16 @@ class Fluid {
 
         std::vector<GridKey> keys;
         std::vector<int> startIndices;
+
+        std::vector<glm::vec3> imageColors;
+        std::vector<float> colors;
         
-        float cellSize = normalizedRadius2 * 2; // SET TO TIME 1 FOR BEST FPS
+        float cellSize = normalizedRadius2 * 1; // SET TO TIME 1 FOR BEST FPS
         int numCells = 2.0f / cellSize;
+
+
+        Circle* mappedCircles;
+
 
         // int numCells = 100;
         // float cellSize = 2.0f / numCells;

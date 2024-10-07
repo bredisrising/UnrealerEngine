@@ -35,12 +35,12 @@ int main() {
     // std::cin >> numFluidParticles;
     // std::cout << std::endl;
 
-    Fluid fluid(20000);
+    int maxParticles = 50000;
 
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
-    VkDeviceSize maxBufferSize = sizeof(Circle) * fluid.maxParticles;
-    VkDeviceSize bufferSize = sizeof(Circle) * fluid.numParticles;
+    VkDeviceSize maxBufferSize = sizeof(Circle) * maxParticles;
+    VkDeviceSize bufferSize = sizeof(Circle) * maxParticles;
 
     std::cout << "Circle Buffer Size " << maxBufferSize / 1000000.0  << "MB" << std::endl;
 
@@ -49,10 +49,10 @@ int main() {
         vertexBuffer, vertexBufferMemory
     );
 
-    void* data;
-    vkMapMemory(api->logicalDevice, vertexBufferMemory, 0, maxBufferSize, 0, &data);
-    memcpy(data, fluid.particleCircles.data(), (size_t) bufferSize);
-    // vkUnmapMemory(api->logicalDevice, vertexBufferMemory);
+    Circle* mappedCircles;
+    vkMapMemory(api->logicalDevice, vertexBufferMemory, 0, maxBufferSize, 0, (void**)&mappedCircles);
+
+    Fluid fluid(mappedCircles, maxParticles);
 
     glfwMakeContextCurrent(window);
 
@@ -60,15 +60,21 @@ int main() {
     double currentTime = glfwGetTime();
     double fps = 0;
 
+    double maxFPS = 240;
+    double lastFrame = glfwGetTime();
+
     fluid.lastPhysicsTime = Time::currentTime();
     std::cout << "Initial lastPhysicsTime: " << fluid.lastPhysicsTime << std::endl;
-    while (!glfwWindowShouldClose(window)) {    
+    while (!glfwWindowShouldClose(window)) {
+        
+        if (glfwGetTime() > lastFrame+(1.0/maxFPS)){
+        lastFrame = glfwGetTime();
         glfwPollEvents();
 
         fluid.step();
 
-        VkDeviceSize bufferSize = sizeof(Circle) * fluid.numParticles;
-        memcpy(data, fluid.particleCircles.data(), (size_t) bufferSize);
+        // VkDeviceSize bufferSize = sizeof(Circle) * fluid.numParticles;
+        // memcpy(data, fluid.particleCircles.data(), (size_t) bufferSize);
         
         api->drawframe(fluid.numParticles, vertexBuffer, 0);
 
@@ -92,6 +98,7 @@ int main() {
 
         glfwSetWindowTitle(window, ss.str().c_str());
         previousTime = currentTime;
+        }
     }
 
     glfwTerminate();

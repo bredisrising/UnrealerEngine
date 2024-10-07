@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include "glm/vec3.hpp"
+
 #include <vector>
 #include <string>
 #include <fstream>
@@ -15,6 +17,6 @@ namespace Helper {
     uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
     void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory &bufferMemory);
 
-    std::vector<std::vector<uint32_t>> loadImage(std::string& fileName);
+    std::vector<glm::vec3> loadImage(const std::string& fileName);
     void saveBytes(std::vector<char> bytes, std::string& fileName);
 }

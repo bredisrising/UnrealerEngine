@@ -3,3 +3,7 @@
 Makefile
 vocab.txt
 /shaders/compiled
+*.bean
+*.bmp
+*.png
+*.jpg
