@@ -8,6 +8,5 @@ glm::vec3 ColorGradient::sample(float time) {
 
     float correctedTime = std::fmod(time * numColors, 1.0f);
     glm::vec3 resultColor = glm::mix(startColor, endColor, correctedTime);
-
     return resultColor;
 }

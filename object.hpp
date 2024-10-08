@@ -2,6 +2,14 @@
 #include "glm/glm.hpp"
 
 
+struct Sphere {
+    
+};
+
+struct Cube {
+    glm::vec3 position;
+};
+
 struct Circle {
     glm::vec3 position;
     glm::vec3 color;

@@ -5,12 +5,12 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include "input.hpp"
 #include "object.hpp"
 #include "fluid.hpp"
 #include "game.hpp"
 
 int main() {
-
     std::vector<float> fpsValues;
 
     GLFWwindow* window;
@@ -24,7 +24,7 @@ int main() {
 
     window = glfwCreateWindow(WIDTH, HEIGHT, "Unrealer Engine", NULL, NULL);
 
-    //glfwSetCursorPosCallback(window, Input::cursorPositionCallback);
+    glfwSetCursorPosCallback(window, Input::cursorPositionCallback);
 
     API* api;
     api = new API(window);
@@ -35,7 +35,7 @@ int main() {
     // std::cin >> numFluidParticles;
     // std::cout << std::endl;
 
-    int maxParticles = 50000;
+    int maxParticles = 11000;
 
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;

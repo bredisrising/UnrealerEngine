@@ -2,19 +2,36 @@
 #include "fluid.hpp"
 #include <iostream>
 
-
 Fluid::Fluid(Circle* mapped, int num): mappedCircles(mapped), numParticles(0) {
     particles.resize(num);
     keys.resize(num);
     startIndices.resize(numCells * numCells + 1);
     maxParticles = num;
 
-    imageColors = Helper::loadImage("./aadi.bmp");
+    Helper::loadImage("./akshai.bmp", image);
 
-    colors.resize(maxParticles*3);
-    std::ifstream inFile("./colors.bean", std::ios::binary);
-    inFile.read(reinterpret_cast<char*>(colors.data()), maxParticles*3*sizeof(float));
+    endParticleInfo.resize(maxParticles*2);
+    // setParticleColors.resize(maxParticles*3);
+    std::ifstream inFile("./positions.bean", std::ios::binary);
+    inFile.read(reinterpret_cast<char*>(endParticleInfo.data()), maxParticles*2*sizeof(float));
     inFile.close();
+
+    // float xRatio = (float) image.width / numCells;
+    // float yRatio = (float) image.height / numCells;
+
+    for (int i = 0; i < maxParticles; i++) {
+        glm::vec2 pos{};
+        float x = endParticleInfo[i*2]*.5+.5;
+        float y = 1.0-(endParticleInfo[i*2+1]*.5+.5);
+        // pos[2] = endParticleInfo[i*3+2];
+
+        glm::vec3 color = image.pixels[(int)(y*(image.height-1))*(image.width) + (int)(x*(image.width-1))];
+
+        // endParticleInfo[i*3] = color[0];
+        // endParticleInfo[i*3+1] = color[1];
+        // endParticleInfo[i*3+2] = color[2];
+        mappedCircles[i].color = color;
+    }
 
 
 
@@ -96,18 +113,19 @@ void Fluid::createParticle() {
     particles[newIndex].positionLast[1] = mappedCircles[newIndex].position[1]; 
 
     // glm::vec3 color;
-    // color[0] = colors[newIndex*3];
-    // color[1] = colors[newIndex*3+1];
-    // color[2] = colors[newIndex*3+2];
+    // color[0] = endParticleInfo[newIndex*3];
+    // color[1] = endParticleInfo[newIndex*3+1];
+    // color[2] = endParticleInfo[newIndex*3+2];
 
     // std::cout << colors[newIndex] << " ";
 
-    mappedCircles[newIndex].color = colorgradient.sample(std::fmod(Time::currentTime()*.075f, 1.0f));
+    // mappedCircles[newIndex].color = colorgradient.sample(std::fmod(Time::currentTime()*.15f, 1.0f));
 
-    // particleCircles[newIndex].color[0] = .1;
-    // particleCircles[newIndex].color[1] = .9;
-    // particleCircles[newIndex].color[2] = .9;
+    // mappedCircles[newIndex].color[0] = .1;
+    // mappedCircles[newIndex].color[1] = .9;
+    // mappedCircles[newIndex].color[2] = .9;
 
+    // mappedCircles[newIndex]
     mappedCircles[newIndex].radius = radius;
 
     //particles[newIndex].positionLast = particles[newIndex].position - glm::vec2{0.5f, 0.0f};
@@ -156,12 +174,16 @@ void Fluid::doPhysicsStep(){
 
         particles[i].positionLast = particles[i].position;
 
-        if (glm::length(displacement) > .005f){
-            displacement = glm::normalize(displacement) * .005f;
+        if (glm::length(displacement) > .01f){
+            displacement = glm::normalize(displacement) * .01f;
         }
 
+        // if (glm::length(particles[i].position - Input::getMousePos()) < .1) {
+        //     particles[i].acceleration += Input::getMouseMove() * 1000.0f;
+        // }
+
         particles[i].position = particles[i].position + displacement + (particles[i].acceleration - displacement*60.0f) * (physicsStepInterval * physicsStepInterval);
-        //particles[i].acceleration = {0.0f, 1.0f};
+        particles[i].acceleration = {0.0f, 0.8f};
 
         mappedCircles[i].position[0] = particles[i].position[0];
         mappedCircles[i].position[1] = particles[i].position[1];
@@ -172,22 +194,24 @@ void Fluid::doPhysicsStep(){
 }
 
 void Fluid::step() {
-
-    float timeElapsedSinceLastPhysicsStep = Time::currentTime() - lastPhysicsTime;
+    // float timeElapsedSinceLastPhysicsStep = Time::currentTime() - lastPhysicsTime;
     float timeElapsedSinceLastParticleCreation = Time::currentTime() - lastParticleCreateTime;
 
     // // with interval adaption - SHOULDN'T SLOW DOWN BUT FPS WILL CRASH AND SIMULATION WILL CRAP ITSELF
     // physicsStepInterval = glm::max(Time::deltatime, minPhysicsStepInterval); // adaptive physics rate to prevent fps collapse and slowdown?
     // physicsStepInterval = Time::deltatime;
     // float numSteps = timeElapsedSinceLastPhysicsStep * (1.0f / physicsStepInterval);
-    float numParticlesToCreate = numParticles >= maxParticles ? 0.0f : timeElapsedSinceLastParticleCreation * spawnRate;
+
+    int numParticlesToCreate = 4;
+
+    // float numParticlesToCreate = numParticles >= maxParticles ? 0.0f : timeElapsedSinceLastParticleCreation * spawnRate;
     
-    for (int particle = 0; particle < (int) numParticlesToCreate; particle++) {
-        if (numParticles < maxParticles){
-            createParticle();   
-            lastParticleCreateTime += 1.0f / spawnRate;
-        }
-    }
+    // for (int particle = 0; particle < (int) numParticlesToCreate; particle++) {
+    //     if (numParticles < maxParticles){         
+    //         lastParticleCreateTime = Time::currentTime();
+    //         createParticle();   
+    //     }
+    // }
     
 
     // for (int physicStep = 0; physicStep < (int)numSteps; physicStep++){
@@ -195,36 +219,49 @@ void Fluid::step() {
     //     lastPhysicsTime += physicsStepInterval;
     // }
 
-    // if (numParticles < maxParticles)
-    //     createParticle();
+    if (numParticles < maxParticles){
+        for (int i = 0; i < numParticlesToCreate; i++){
+            lastParticleCreateTime = Time::currentTime();
+            createParticle();
+        }
+    }
+        
     
     // no interval adaption - SIMULTATION SHOULD SLOW DOWN
     // if (numParticles < maxParticles && timeElapsedSinceLastParticleCreation > (1.0f / spawnRate)) {
     //     lastParticleCreateTime += 1.0f/spawnRate;
     //     createParticle();
     // } 
-    // if (numParticles >= maxParticles) {
-    //     for (int i = 47-1; i >= 0; i--) {
-    //         for (int j = 0; j < 47; j++) {
-    //             glm::vec3 color = imageColors[i * 47 + j];
-    //             int index = startIndices[(47-i-1)*47+j];
-    //             if (index != INT_MAX){
-    //                 int pi = keys[index].particleIndex;
-    //                 particleCircles[pi].color = color;
-    //             }
-    //         }
-    //     }
 
-    //     std::vector<float> colors(maxParticles*3);
-    //     for (int i = 0; i < numParticles; i++) {
-    //         colors[i*3] = particleCircles[i].color[0];
-    //         colors[i*3+1] = particleCircles[i].color[1];
-    //         colors[i*3+2] = particleCircles[i].color[2];
-    //     }
-    //     std::ofstream file("./colors.bean", std::ios::binary);
-    //     file.write(reinterpret_cast<const char*>(colors.data()), maxParticles*3*sizeof(float));
-    //     file.close();
-    // }
+    if (!saved && numParticles >= maxParticles && ((Time::currentTime() - lastParticleCreateTime) > 5.0f)) {
+        // for (int i = 0; i < numCells; i++) {
+        //     for (int j = 0; j < numCells; j++) {
+        //         float xRatio = (float) image.width / numCells;
+        //         float yRatio = (float) image.height / numCells;
+
+        //         glm::vec3 color = image.pixels[(int)((numCells-i-1) * xRatio) * image.width + (int)j*yRatio];
+
+        //         int index = startIndices[i*numCells+j];
+        //         if (index != INT_MAX) {
+        //             int pi = keys[index].particleIndex;
+        //             mappedCircles[pi].color = color;
+        //         }
+        //     }
+
+        // }
+        std::vector<float> positions(maxParticles*2);
+        for (int i = 0; i < numParticles; i++) {
+            positions[i*2] = particles[i].position[0];
+            positions[i*2+1] = particles[i].position[1];
+            // positions[i*3+2] = particles[i].position[2];
+        }
+        std::ofstream file("./positions.bean", std::ios::binary);
+        file.write(reinterpret_cast<const char*>(positions.data()), maxParticles*2*sizeof(float));
+        file.close();
+        saved = true;
+        std::cout << " Saved ";
+    }
+
 
     doPhysicsStep();
 

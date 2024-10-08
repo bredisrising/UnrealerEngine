@@ -7,6 +7,7 @@
 #include <math.h>
 #include <algorithm>
 #include <fstream>
+#include "input.hpp"
 
 struct Particle {
     glm::vec2 position;
@@ -56,11 +57,11 @@ class Fluid {
         float targetDensity = .275f;
         float pressureMultiplier = 0.05f;
 
-        float radius = 4.25f;
+        float radius = 10.0f;
         float normalizedRadius = radius / HEIGHT;
         float normalizedRadius2 = 2 * normalizedRadius;
 
-        float spawnRate = 600.0f;
+        float spawnRate = 920.0f;
         float minSpawnRate = 100.0f;
 
         float lastParticleCreateTime = 0.0f;
@@ -71,12 +72,13 @@ class Fluid {
         std::vector<GridKey> keys;
         std::vector<int> startIndices;
 
-        std::vector<glm::vec3> imageColors;
-        std::vector<float> colors;
+        Helper::Image image;
+        bool saved;
+        std::vector<float> endParticleInfo;
+        std::vector<float> setParticleColors;
         
         float cellSize = normalizedRadius2 * 1; // SET TO TIME 1 FOR BEST FPS
         int numCells = 2.0f / cellSize;
-
 
         Circle* mappedCircles;
 
