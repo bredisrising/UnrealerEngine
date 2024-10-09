@@ -14,6 +14,8 @@ constexpr float WIDTH = 950.f;
 constexpr float BOUNDX = WIDTH / HEIGHT;
 constexpr float BOUNDY = 1.0f;
 
+constexpr int FPS = 240;
+
 
 
 class Random {

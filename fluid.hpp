@@ -29,10 +29,12 @@ struct GridKey {
 
 class Fluid {
     public:
-        Fluid(Circle* mapped, int num);
+        Fluid();
         void step();
         int numParticles;
-        int maxParticles;      
+        int maxParticles;  
+   
+        void map(Circle* circles);
         std::vector<Particle> particles;
         float lastPhysicsTime = 0.0f;
     private:
@@ -61,13 +63,13 @@ class Fluid {
         float normalizedRadius = radius / HEIGHT;
         float normalizedRadius2 = 2 * normalizedRadius;
 
-        float spawnRate = 920.0f;
+        float spawnRate = 750.0f;
         float minSpawnRate = 100.0f;
 
         float lastParticleCreateTime = 0.0f;
 
-        float physicsStepInterval = 1.0f/240.0f;
-        float minPhysicsStepInterval = 1.0f/240.0f;
+        float physicsStepInterval = 1.0f/480.0f;
+        float minPhysicsStepInterval = 1.0f/480.0f;
 
         std::vector<GridKey> keys;
         std::vector<int> startIndices;
@@ -80,7 +82,7 @@ class Fluid {
         float cellSize = normalizedRadius2 * 1; // SET TO TIME 1 FOR BEST FPS
         int numCells = 2.0f / cellSize;
 
-        Circle* mappedCircles;
+        Circle* mappedCircles; 
 
 
         // int numCells = 100;

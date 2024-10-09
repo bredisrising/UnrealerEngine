@@ -17,9 +17,31 @@ class API {
 
         API(GLFWwindow* window);
         void initializeVulkan();
-        void drawframe(int numParticles, VkBuffer vBuffer, VkDeviceSize offset);
+        void drawframe(int numParticles, int numPipelines, std::vector<VkPipeline>& pipelines, std::vector<VkBuffer>& buffers, std::vector<VkDeviceSize>& offsets);
         void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory &bufferMemory);
         void uploadDataToBuffer(VkBuffer& buffer, void* data);
+
+        void initVulkan();
+        void createInstance();
+        void createSurface();
+        void pickPhysicalDevice();
+        void createLogicalDevice();
+        void createImageViews();
+        void createSwapChain();
+        void createRenderPass();
+        void createFramebuffers();
+
+        VkExtent2D swapchainExtent;
+        VkViewport viewport;
+        VkRect2D scissor;
+        VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo;
+        VkPipelineViewportStateCreateInfo viewportStateCreateInfo;
+        VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo;
+        VkPipelineColorBlendAttachmentState colorBlendAttachment;
+        VkPipelineColorBlendStateCreateInfo colorBlending;
+        VkPipelineMultisampleStateCreateInfo multisampling;
+        VkPipelineLayoutCreateInfo layoutCreateInfo;
+        
 
 
     private:
@@ -33,9 +55,7 @@ class API {
         VkSurfaceKHR surface;
         VkSwapchainKHR swapchain;
         VkRenderPass renderPass;
-        VkPipeline graphicsPipeline;
 
-        VkExtent2D swapchainExtent{};
 
         VkCommandPool commandPool;
 
@@ -49,7 +69,7 @@ class API {
         std::vector<VkSemaphore> renderFinishedSemaphores;
         std::vector<VkFence> inFlightFences; 
 
-        void recordCommandBuffer(int numParticles, VkCommandBuffer commandBuffer, uint32_t index, VkBuffer vBuffer, VkDeviceSize offset);
+        void recordCommandBuffer(int numParticles, VkCommandBuffer commandBuffer, uint32_t index, int numPipelines, std::vector<VkPipeline>& pipelines, std::vector<VkBuffer>& buffers, std::vector<VkDeviceSize>& offsets);
         void createCommandPool(int graphicsFamilyIndex);
         void createCommandBuffers();
         void createSyncObjects();

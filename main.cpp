@@ -8,6 +8,7 @@
 #include "input.hpp"
 #include "object.hpp"
 #include "fluid.hpp"
+#include "renderer.hpp"
 #include "game.hpp"
 
 int main() {
@@ -29,75 +30,69 @@ int main() {
     API* api;
     api = new API(window);
     api->initializeVulkan();
-    
-    // int numFluidParticles;
-    // std::cout << "Num Fluid Particles: ";
-    // std::cin >> numFluidParticles;
-    // std::cout << std::endl;
+    Renderer::api = api;
+    Renderer::createCircleRenderer();
 
-    int maxParticles = 11000;
+    Fluid fluid;
 
-    VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
-    VkDeviceSize maxBufferSize = sizeof(Circle) * maxParticles;
-    VkDeviceSize bufferSize = sizeof(Circle) * maxParticles;
+    VkDeviceSize maxBufferSize = sizeof(Circle) * fluid.maxParticles;
+    VkDeviceSize bufferSize = sizeof(Circle) * fluid.maxParticles;
 
     std::cout << "Circle Buffer Size " << maxBufferSize / 1000000.0  << "MB" << std::endl;
 
     api->createBuffer(maxBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        vertexBuffer, vertexBufferMemory
+        Renderer::buffers[0], vertexBufferMemory
     );
 
     Circle* mappedCircles;
     vkMapMemory(api->logicalDevice, vertexBufferMemory, 0, maxBufferSize, 0, (void**)&mappedCircles);
 
-    Fluid fluid(mappedCircles, maxParticles);
+    fluid.map(mappedCircles);
 
     glfwMakeContextCurrent(window);
 
     double previousTime = glfwGetTime();
     double currentTime = glfwGetTime();
     double fps = 0;
-
-    double maxFPS = 240;
     double lastFrame = glfwGetTime();
 
     fluid.lastPhysicsTime = Time::currentTime();
     std::cout << "Initial lastPhysicsTime: " << fluid.lastPhysicsTime << std::endl;
     while (!glfwWindowShouldClose(window)) {
         
-        if (glfwGetTime() > lastFrame+(1.0/maxFPS)){
-        lastFrame = glfwGetTime();
-        glfwPollEvents();
+        if (glfwGetTime() > lastFrame+(1.0/FPS)){
+            lastFrame = glfwGetTime();
+            glfwPollEvents();
 
-        fluid.step();
+            fluid.step();
 
-        // VkDeviceSize bufferSize = sizeof(Circle) * fluid.numParticles;
-        // memcpy(data, fluid.particleCircles.data(), (size_t) bufferSize);
-        
-        api->drawframe(fluid.numParticles, vertexBuffer, 0);
+            // VkDeviceSize bufferSize = sizeof(Circle) * fluid.numParticles;
+            // memcpy(data, fluid.particleCircles.data(), (size_t) bufferSize);
+            
+            api->drawframe(fluid.numParticles, Renderer::numPipelines, Renderer::pipelines, Renderer::buffers, Renderer::offsets);
 
-        currentTime = glfwGetTime();
-        fps = 1 / (currentTime - previousTime);
+            currentTime = glfwGetTime();
+            fps = 1 / (currentTime - previousTime);
 
-        fpsValues.push_back(fps);
-        if (fpsValues.size() > 50) {
-            fpsValues.erase(fpsValues.begin());
-        }
+            fpsValues.push_back(fps);
+            if (fpsValues.size() > 50) {
+                fpsValues.erase(fpsValues.begin());
+            }
 
-        float averageFPS = std::accumulate(fpsValues.begin(), fpsValues.end(), 0) / fpsValues.size();
-
-
-        Time::deltatime = currentTime - previousTime;
-
-        std::stringstream ss;
-        ss << "Unrealer Engine " << "FPS: " << fps << " Average FPS: " << averageFPS << " Num Particles: " << fluid.numParticles << " Current Time: " << Time::currentTime();
+            float averageFPS = std::accumulate(fpsValues.begin(), fpsValues.end(), 0) / fpsValues.size();
 
 
+            Time::deltatime = currentTime - previousTime;
 
-        glfwSetWindowTitle(window, ss.str().c_str());
-        previousTime = currentTime;
+            std::stringstream ss;
+            ss << "Unrealer Engine " << "FPS: " << fps << " Average FPS: " << averageFPS << " Num Particles: " << fluid.numParticles << " Current Time: " << Time::currentTime();
+
+
+
+            glfwSetWindowTitle(window, ss.str().c_str());
+            previousTime = currentTime;
         }
     }
 

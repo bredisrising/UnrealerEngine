@@ -230,46 +230,7 @@ void API::initializeVulkan() {
     std::cout << "Render Pass Creation " << string_VkResult(vkCreateRenderPass(logicalDevice, &renderPassCreateInfo, nullptr, &renderPass)) << std::endl;
 
     // graphics pipeline
-    VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo{};
-    inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-
-
-    VkVertexInputAttributeDescription vertexPositionAttribute;
-    vertexPositionAttribute.binding = 0;
-    vertexPositionAttribute.location = 0;
-    vertexPositionAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-    vertexPositionAttribute.offset = offsetof(Circle, position);
-
-    VkVertexInputAttributeDescription vertexColorAttribute;
-    vertexColorAttribute.binding = 0;
-    vertexColorAttribute.location = 1;
-    vertexColorAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-    vertexColorAttribute.offset = offsetof(Circle, color);
-
-    VkVertexInputAttributeDescription vertexRadiusAttribute;
-    vertexRadiusAttribute.binding = 0;
-    vertexRadiusAttribute.location = 2;
-    vertexRadiusAttribute.format = VK_FORMAT_R32_SFLOAT;
-    vertexRadiusAttribute.offset = offsetof(Circle, radius); 
-    
-    VkVertexInputAttributeDescription attributeDescriptions[] = {vertexPositionAttribute, vertexColorAttribute, vertexRadiusAttribute};
-
-    VkVertexInputBindingDescription vertexBindingDescription;
-    vertexBindingDescription.binding = 0;
-    vertexBindingDescription.stride = sizeof(Circle);
-    vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-
-    VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
-    vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 3;
-    vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
-    vertexInputStateCreateInfo.pVertexAttributeDescriptions = attributeDescriptions;
-    vertexInputStateCreateInfo.pVertexBindingDescriptions = &vertexBindingDescription;
-
-
-    VkViewport viewport{};
+    viewport = {};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
     viewport.width = WIDTH;
@@ -277,12 +238,12 @@ void API::initializeVulkan() {
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
-    VkRect2D scissor{};
+    scissor = {};
     scissor.extent = swapchainExtent;
     scissor.offset = {0, 0};
 
 
-    VkPipelineViewportStateCreateInfo viewportStateCreateInfo{};
+    viewportStateCreateInfo = {};
     viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportStateCreateInfo.pViewports = &viewport;
     viewportStateCreateInfo.viewportCount = 1;
@@ -290,7 +251,7 @@ void API::initializeVulkan() {
     viewportStateCreateInfo.pScissors = &scissor;
 
 
-    VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo{};
+    rasterizationCreateInfo = {};
     rasterizationCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizationCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizationCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
@@ -298,26 +259,12 @@ void API::initializeVulkan() {
     rasterizationCreateInfo.lineWidth = 1.0;
     
 
-    VkPipelineShaderStageCreateInfo vertexShader{};
-    vertexShader.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vertexShader.module = Helper::createShaderModule(Helper::readFile("./shaders/compiled/vert.spv"), logicalDevice);
-    vertexShader.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    vertexShader.pName = "main";
-
-    VkPipelineShaderStageCreateInfo fragShader{};
-    fragShader.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    fragShader.module = Helper::createShaderModule(Helper::readFile("./shaders/compiled/frag.spv"), logicalDevice);
-    fragShader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    fragShader.pName = "main";
-
-    VkPipelineShaderStageCreateInfo shaderStageCreateInfos[] = {vertexShader, fragShader};
-
-    VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+    colorBlendAttachment = {};
     colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     colorBlendAttachment.blendEnable = VK_FALSE;
     colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 
-    VkPipelineColorBlendStateCreateInfo colorBlending{};
+    colorBlending = {};
     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     colorBlending.logicOpEnable = VK_FALSE;
     colorBlending.attachmentCount = 1;
@@ -326,9 +273,8 @@ void API::initializeVulkan() {
     colorBlending.blendConstants[1] = 0.0f;
     colorBlending.blendConstants[2] = 0.0f;
     colorBlending.blendConstants[3] = 0.0f;
-    
 
-    VkPipelineMultisampleStateCreateInfo multisampling{};
+    multisampling = {};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
     multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -341,29 +287,21 @@ void API::initializeVulkan() {
     // fragment shader
     // depth/stencil
 
-    VkPipelineLayoutCreateInfo layoutCreateInfo{};
+    layoutCreateInfo = {};
     layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
     VkPipelineLayout layout;
     std::cout << "Pipeline Layout" << string_VkResult(vkCreatePipelineLayout(logicalDevice, &layoutCreateInfo, nullptr, &layout)) << std::endl;
 
-
-    VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo{};
+    graphicsPipelineCreateInfo = {};
     graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    graphicsPipelineCreateInfo.stageCount = 2; // vertex and fragment shaders
-    graphicsPipelineCreateInfo.pInputAssemblyState = &inputAssemblyCreateInfo;
-    graphicsPipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
     graphicsPipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
-    graphicsPipelineCreateInfo.pRasterizationState = &rasterizationCreateInfo;
     graphicsPipelineCreateInfo.pColorBlendState = &colorBlending;
     graphicsPipelineCreateInfo.pMultisampleState = &multisampling;
     graphicsPipelineCreateInfo.pDepthStencilState = nullptr;
-    graphicsPipelineCreateInfo.pStages = shaderStageCreateInfos;
     graphicsPipelineCreateInfo.renderPass = renderPass;
     graphicsPipelineCreateInfo.subpass = 0;
     graphicsPipelineCreateInfo.layout = layout;
-
-    std::cout << "Graphics Pipeline " << string_VkResult(vkCreateGraphicsPipelines(logicalDevice, nullptr, 1, &graphicsPipelineCreateInfo, nullptr, &graphicsPipeline)) << std::endl;
 
     std::cout << "swapchainImageViews size: " << swapchainImageViews.size() << std::endl;
     std::cout << "swapchainExtent width: " << swapchainExtent.width << ", height: " << swapchainExtent.height << std::endl;
@@ -393,7 +331,7 @@ void API::initializeVulkan() {
 
 }
 
-void API::drawframe(int numParticles, VkBuffer vBuffer, VkDeviceSize offset) {
+void API::drawframe(int numParticles, int numPipelines, std::vector<VkPipeline>& pipelines, std::vector<VkBuffer>& buffers, std::vector<VkDeviceSize>& offsets) {
     //std::cout << "Current Frame " << currentFrame << std::endl;
     vkWaitForFences(logicalDevice, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
     vkResetFences(logicalDevice, 1, &inFlightFences[currentFrame]);
@@ -402,7 +340,7 @@ void API::drawframe(int numParticles, VkBuffer vBuffer, VkDeviceSize offset) {
     vkAcquireNextImageKHR(logicalDevice, swapchain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
     vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-    recordCommandBuffer(numParticles, commandBuffers[currentFrame], imageIndex, vBuffer, offset);
+    recordCommandBuffer(numParticles, commandBuffers[currentFrame], imageIndex, numPipelines, pipelines, buffers, offsets);
 
     VkSemaphore waitSemaphore[] = {imageAvailableSemaphores[currentFrame]};
 
@@ -484,7 +422,7 @@ void API::createCommandPool(int graphicsFamilyIndex){
 }
 
 
-void API::recordCommandBuffer(int numParticles, VkCommandBuffer commandBuffer, uint32_t index, VkBuffer vBuffer, VkDeviceSize offset) {
+void API::recordCommandBuffer(int numParticles, VkCommandBuffer commandBuffer, uint32_t index, int numPipelines, std::vector<VkPipeline>& pipelines, std::vector<VkBuffer>& buffers, std::vector<VkDeviceSize>& offsets) {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = 0;
@@ -504,9 +442,13 @@ void API::recordCommandBuffer(int numParticles, VkCommandBuffer commandBuffer, u
     renderPassBeginInfo.pClearValues = &clearColor;
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vBuffer, &offset);
-    vkCmdDraw(commandBuffer, numParticles, 1, 0, 0);
+    
+    for (int i = 0; i < numPipelines; i++){
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[i]);
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &buffers[i], &offsets[i]);
+        vkCmdDraw(commandBuffer, numParticles, 1, 0, 0);
+    }
+    
     vkCmdEndRenderPass(commandBuffer);
     vkEndCommandBuffer(commandBuffer);
 

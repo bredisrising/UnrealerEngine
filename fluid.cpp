@@ -2,12 +2,8 @@
 #include "fluid.hpp"
 #include <iostream>
 
-Fluid::Fluid(Circle* mapped, int num): mappedCircles(mapped), numParticles(0) {
-    particles.resize(num);
-    keys.resize(num);
-    startIndices.resize(numCells * numCells + 1);
-    maxParticles = num;
-
+void Fluid::map(Circle* circles){
+    mappedCircles = circles;
     Helper::loadImage("./akshai.bmp", image);
 
     endParticleInfo.resize(maxParticles*2);
@@ -32,6 +28,16 @@ Fluid::Fluid(Circle* mapped, int num): mappedCircles(mapped), numParticles(0) {
         // endParticleInfo[i*3+2] = color[2];
         mappedCircles[i].color = color;
     }
+}
+
+
+Fluid::Fluid() {
+    int num = numCells*numCells*1.2;
+    std::cout << "PARTICLE COUNT " << num << std::endl;
+    particles.resize(num);
+    keys.resize(num);
+    startIndices.resize(numCells * numCells + 1);
+    maxParticles = num;
 
 
 
@@ -39,24 +45,6 @@ Fluid::Fluid(Circle* mapped, int num): mappedCircles(mapped), numParticles(0) {
     std::cout << "Num Cells " << numCells << " by " << numCells << std::endl;
     std::cout << "Cell Size " << cellSize << " by " << cellSize << std::endl;
 
-    // for (int particleIndex = 0; particleIndex < maxParticles; particleIndex++){
-    //     // particleCircles[particleIndex].position[0] = -BOUNDX;
-    //     // particleCircles[particleIndex].position[1] = -BOUNDY;
-
-    //     particleCircles[particleIndex].position[0] = Random::getRandom() * BOUNDX;
-    //     particleCircles[particleIndex].position[1] = Random::getRandom();    
-    //     // particleCircles[particleIndex].color[0] = Random::getRandom() * .5 + .5;
-    //     // particleCircles[particleIndex].color[1] = Random::getRandom() * .5 + .5;
-    //     // particleCircles[particleIndex].color[2] = Random::getRandom() * .5 + .5;
-
-    //     particleCircles[particleIndex].radius = radius;
-    //     particles[particleIndex].position = particleCircles[particleIndex].position;
-    //     // particles[particleIndex].positionLast = particles[particleIndex].position;
-    //     particles[particleIndex].positionLast[0] = particleCircles[particleIndex].position[0]-Random::getRandom()*.005f;
-    //     particles[particleIndex].positionLast[1] = particleCircles[particleIndex].position[1]-Random::getRandom()*.005f;   
-
-    //     numParticles++;
-    // }
 
     colorgradient.colors.push_back(glm::vec3{1.0f, 0.0f, 0.0f});
     colorgradient.colors.push_back(glm::vec3{0.0f, 1.0f, 0.0f});
@@ -174,13 +162,13 @@ void Fluid::doPhysicsStep(){
 
         particles[i].positionLast = particles[i].position;
 
-        if (glm::length(displacement) > .01f){
-            displacement = glm::normalize(displacement) * .01f;
+        if (glm::length(displacement) > .0025f){
+            displacement = glm::normalize(displacement) * .0025f;
         }
 
-        // if (glm::length(particles[i].position - Input::getMousePos()) < .1) {
-        //     particles[i].acceleration += Input::getMouseMove() * 1000.0f;
-        // }
+        if (glm::length(particles[i].position - Input::getMousePos()) < .2) {
+            particles[i].acceleration += Input::getMouseMove() * 5000.0f;
+        }
 
         particles[i].position = particles[i].position + displacement + (particles[i].acceleration - displacement*60.0f) * (physicsStepInterval * physicsStepInterval);
         particles[i].acceleration = {0.0f, 0.8f};
@@ -202,7 +190,7 @@ void Fluid::step() {
     // physicsStepInterval = Time::deltatime;
     // float numSteps = timeElapsedSinceLastPhysicsStep * (1.0f / physicsStepInterval);
 
-    int numParticlesToCreate = 4;
+    int numParticlesToCreate = spawnRate * (1.0f/FPS);
 
     // float numParticlesToCreate = numParticles >= maxParticles ? 0.0f : timeElapsedSinceLastParticleCreation * spawnRate;
     
@@ -221,8 +209,12 @@ void Fluid::step() {
 
     if (numParticles < maxParticles){
         for (int i = 0; i < numParticlesToCreate; i++){
-            lastParticleCreateTime = Time::currentTime();
-            createParticle();
+            if (numParticles < maxParticles){
+                lastParticleCreateTime = Time::currentTime();
+                createParticle();
+            }else{
+                break;
+            }
         }
     }
         
@@ -231,24 +223,9 @@ void Fluid::step() {
     // if (numParticles < maxParticles && timeElapsedSinceLastParticleCreation > (1.0f / spawnRate)) {
     //     lastParticleCreateTime += 1.0f/spawnRate;
     //     createParticle();
-    // } 
+    // ) 
 
     if (!saved && numParticles >= maxParticles && ((Time::currentTime() - lastParticleCreateTime) > 5.0f)) {
-        // for (int i = 0; i < numCells; i++) {
-        //     for (int j = 0; j < numCells; j++) {
-        //         float xRatio = (float) image.width / numCells;
-        //         float yRatio = (float) image.height / numCells;
-
-        //         glm::vec3 color = image.pixels[(int)((numCells-i-1) * xRatio) * image.width + (int)j*yRatio];
-
-        //         int index = startIndices[i*numCells+j];
-        //         if (index != INT_MAX) {
-        //             int pi = keys[index].particleIndex;
-        //             mappedCircles[pi].color = color;
-        //         }
-        //     }
-
-        // }
         std::vector<float> positions(maxParticles*2);
         for (int i = 0; i < numParticles; i++) {
             positions[i*2] = particles[i].position[0];

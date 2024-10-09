@@ -12,7 +12,6 @@
 #include <fstream>
 
 
-
 namespace Helper {
     struct Image {
         int32_t width;
