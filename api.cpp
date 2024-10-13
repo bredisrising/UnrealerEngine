@@ -282,16 +282,10 @@ void API::initializeVulkan() {
     // minimal graphics pipeline
     // input assembly
     // vertex shader
-    // viewport/scissor state
+    // viewport/scissor states
     // rasterization
     // fragment shader
     // depth/stencil
-
-    layoutCreateInfo = {};
-    layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-
-    VkPipelineLayout layout;
-    std::cout << "Pipeline Layout" << string_VkResult(vkCreatePipelineLayout(logicalDevice, &layoutCreateInfo, nullptr, &layout)) << std::endl;
 
     graphicsPipelineCreateInfo = {};
     graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -301,7 +295,6 @@ void API::initializeVulkan() {
     graphicsPipelineCreateInfo.pDepthStencilState = nullptr;
     graphicsPipelineCreateInfo.renderPass = renderPass;
     graphicsPipelineCreateInfo.subpass = 0;
-    graphicsPipelineCreateInfo.layout = layout;
 
     std::cout << "swapchainImageViews size: " << swapchainImageViews.size() << std::endl;
     std::cout << "swapchainExtent width: " << swapchainExtent.width << ", height: " << swapchainExtent.height << std::endl;
@@ -331,7 +324,7 @@ void API::initializeVulkan() {
 
 }
 
-void API::drawframe(int numParticles, int numPipelines, std::vector<VkPipeline>& pipelines, std::vector<VkBuffer>& buffers, std::vector<VkDeviceSize>& offsets) {
+void API::drawframe() {
     //std::cout << "Current Frame " << currentFrame << std::endl;
     vkWaitForFences(logicalDevice, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
     vkResetFences(logicalDevice, 1, &inFlightFences[currentFrame]);
@@ -340,7 +333,7 @@ void API::drawframe(int numParticles, int numPipelines, std::vector<VkPipeline>&
     vkAcquireNextImageKHR(logicalDevice, swapchain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
     vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-    recordCommandBuffer(numParticles, commandBuffers[currentFrame], imageIndex, numPipelines, pipelines, buffers, offsets);
+    recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
     VkSemaphore waitSemaphore[] = {imageAvailableSemaphores[currentFrame]};
 
@@ -422,7 +415,7 @@ void API::createCommandPool(int graphicsFamilyIndex){
 }
 
 
-void API::recordCommandBuffer(int numParticles, VkCommandBuffer commandBuffer, uint32_t index, int numPipelines, std::vector<VkPipeline>& pipelines, std::vector<VkBuffer>& buffers, std::vector<VkDeviceSize>& offsets) {
+void API::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index) {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = 0;
@@ -443,10 +436,22 @@ void API::recordCommandBuffer(int numParticles, VkCommandBuffer commandBuffer, u
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     
-    for (int i = 0; i < numPipelines; i++){
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[i]);
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &buffers[i], &offsets[i]);
-        vkCmdDraw(commandBuffer, numParticles, 1, 0, 0);
+    for (int i = 0; i < Renderer::renderers.size(); i++){
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Renderer::renderers[i].pipeline);
+
+        if (Renderer::renderers[i].hasPushConstants){
+            vkCmdPushConstants(commandBuffer, Renderer::renderers[i].pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::vec4), &Camera::worldPosition);
+            vkCmdPushConstants(commandBuffer, Renderer::renderers[i].pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, sizeof(glm::vec4), sizeof(glm::mat4), &Camera::rotationMatrix);
+        }
+
+        if (Renderer::renderers[i].hasVertexBuffer)
+            vkCmdBindVertexBuffers(commandBuffer, 0, 1, &Renderer::renderers[i].vertexBuffer, &Renderer::renderers[i].offset);
+        
+        if (Renderer::renderers[i].hasDescriptorSets){
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Renderer::renderers[i].pipelineLayout, 0, 1, &Renderer::renderers[i].descriptorSet, 0, nullptr);
+        }
+            
+        vkCmdDraw(commandBuffer, Renderer::renderers[i].numVertices, 1, 0, 0);
     }
     
     vkCmdEndRenderPass(commandBuffer);

@@ -59,17 +59,17 @@ class Fluid {
         float targetDensity = .275f;
         float pressureMultiplier = 0.05f;
 
-        float radius = 10.0f;
+        float radius = 12.0f;
         float normalizedRadius = radius / HEIGHT;
         float normalizedRadius2 = 2 * normalizedRadius;
 
-        float spawnRate = 750.0f;
+        float spawnRate = 240.0f;
         float minSpawnRate = 100.0f;
 
         float lastParticleCreateTime = 0.0f;
 
-        float physicsStepInterval = 1.0f/480.0f;
-        float minPhysicsStepInterval = 1.0f/480.0f;
+        float physicsStepInterval = 1.0f/376.0f;
+        float minPhysicsStepInterval = 1.0f/376.0f;
 
         std::vector<GridKey> keys;
         std::vector<int> startIndices;

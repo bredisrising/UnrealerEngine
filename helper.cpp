@@ -12,7 +12,7 @@ void Helper::loadImage(const std::string& fileName, Helper::Image& image) {
     address += imageStream.get() << 16;
     address += imageStream.get() << 24;
 
-    int sizeofheader = 0;
+    uint32_t sizeofheader = 0;
     imageStream.seekg(14);
     sizeofheader += imageStream.get();
     sizeofheader += imageStream.get()<<8;
@@ -22,8 +22,8 @@ void Helper::loadImage(const std::string& fileName, Helper::Image& image) {
     std::cout << "Header Size " << sizeofheader << std::endl; 
 
 
-    int32_t width;
-    int32_t height;
+    int32_t width = 0;
+    int32_t height = 0;
     imageStream.seekg(18);
     width += imageStream.get();
     width += imageStream.get() << 8;
@@ -35,11 +35,11 @@ void Helper::loadImage(const std::string& fileName, Helper::Image& image) {
     height += imageStream.get() << 16;
     height += imageStream.get() << 24;
 
+    std::cout << "Image Dim " << width << " x " << height << std::endl;
+
     image.width = width;
     image.height = height;
     image.pixels.resize(width * height);
-
-    std::cout << "Image Dim " << width << " x " << height << std::endl;
 
     imageStream.seekg(address);
     for (int i = 0; i < width * height; i++) {

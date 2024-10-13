@@ -5,6 +5,9 @@
 #endif
 
 #define GLFW_INCLUDE_VULKAN
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/glm.hpp> 
+#include <glm/gtx/euler_angles.hpp>
 #include <glfw/glfw3.h>
 #include <random>
 
@@ -16,7 +19,25 @@ constexpr float BOUNDY = 1.0f;
 
 constexpr int FPS = 240;
 
+class Camera {
+    public:
+        static glm::mat4 getViewMatrix();
+        static glm::mat4 getProjMatrix();
 
+        static glm::vec4 worldPosition;
+
+        static glm::vec4 forward;
+        static glm::vec4 up;
+        static glm::vec4 right;
+
+        static glm::mat4 rotationMatrix;
+
+        static float moveSpeed;
+
+        static float E;
+    private:    
+
+};
 
 class Random {
     public:

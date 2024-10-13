@@ -7,6 +7,7 @@
 #include "GLFW/glfw3.h"
 #include "helper.hpp"
 #include "object.hpp"
+#include "renderer.hpp"
 #include "glm/glm.hpp"
 
 static const int MAX_FRAMES_IN_FLIGHT = 3;
@@ -14,10 +15,11 @@ static const int MAX_FRAMES_IN_FLIGHT = 3;
 class API {
     public:
         VkDevice logicalDevice;
+        VkPhysicalDevice physicalDevice;
 
         API(GLFWwindow* window);
         void initializeVulkan();
-        void drawframe(int numParticles, int numPipelines, std::vector<VkPipeline>& pipelines, std::vector<VkBuffer>& buffers, std::vector<VkDeviceSize>& offsets);
+        void drawframe();
         void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory &bufferMemory);
         void uploadDataToBuffer(VkBuffer& buffer, void* data);
 
@@ -49,7 +51,7 @@ class API {
 
         GLFWwindow* window;
         VkInstance instance;
-        VkPhysicalDevice physicalDevice;
+
         VkQueue graphicsQueue;
         VkQueue presentQueue;
         VkSurfaceKHR surface;
@@ -69,7 +71,7 @@ class API {
         std::vector<VkSemaphore> renderFinishedSemaphores;
         std::vector<VkFence> inFlightFences; 
 
-        void recordCommandBuffer(int numParticles, VkCommandBuffer commandBuffer, uint32_t index, int numPipelines, std::vector<VkPipeline>& pipelines, std::vector<VkBuffer>& buffers, std::vector<VkDeviceSize>& offsets);
+        void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
         void createCommandPool(int graphicsFamilyIndex);
         void createCommandBuffers();
         void createSyncObjects();

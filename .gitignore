@@ -8,4 +8,5 @@ vocab.txt
 *.png
 *.jpg
 *.o
+/.VSCodeCounter
 *.d

@@ -40,7 +40,6 @@ Fluid::Fluid() {
     maxParticles = num;
 
 
-
     std::cout << "Normalized Radius * 2 " << normalizedRadius2 << std::endl;
     std::cout << "Num Cells " << numCells << " by " << numCells << std::endl;
     std::cout << "Cell Size " << cellSize << " by " << cellSize << std::endl;
@@ -166,9 +165,9 @@ void Fluid::doPhysicsStep(){
             displacement = glm::normalize(displacement) * .0025f;
         }
 
-        if (glm::length(particles[i].position - Input::getMousePos()) < .2) {
-            particles[i].acceleration += Input::getMouseMove() * 5000.0f;
-        }
+        // if (glm::length(particles[i].position - Input::getMousePos()) < .5) {
+        //     particles[i].acceleration += Input::getMouseMove() * 5000.0f;
+        // }
 
         particles[i].position = particles[i].position + displacement + (particles[i].acceleration - displacement*60.0f) * (physicsStepInterval * physicsStepInterval);
         particles[i].acceleration = {0.0f, 0.8f};

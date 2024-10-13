@@ -13,6 +13,7 @@
 
 
 namespace Helper {
+
     struct Image {
         int32_t width;
         int32_t height;
