@@ -75,6 +75,8 @@ mat4 m = mat4(
     0.0, 0.0, 0.0, 0.0
 );
 
+float aspectRatio = 1200.0/1920.0;
+
 void main () {
     // 36 vertices needed for a cube
     int cubeVertex = gl_VertexIndex % 36;
@@ -82,6 +84,7 @@ void main () {
     vec4 perspective = m * (pushconstants.rotationMatrix * (vec4(worldSpace, 1.0) - pushconstants.camPos));
 
     gl_Position = perspective;
+    gl_Position.x *= aspectRatio;
     gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0;
     vertPos = cubeVertices[cubeVertex];
     // normal = vec3(0.0, 0.0, 0.0);

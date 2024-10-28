@@ -1,16 +1,18 @@
 #pragma once
 #include "vulkan/vulkan.h"
+#include "renderables.hpp"
+#include "components.hpp"
 #include "helper.hpp"
-#include "object.hpp"
 #include <vector>
 
 class Renderer {
     public:
         static std::vector<Renderer> renderers;
-        static void createCircleRenderer(VkGraphicsPipelineCreateInfo& createInfo);
-        static Cube* createCubeRenderer(VkGraphicsPipelineCreateInfo& createInfo);
-        static VkDevice logicalDevice;
-        static VkPhysicalDevice physicalDevice;
+        // eventually, have only one create function that takes in all the stuff needed
+        static Renderer createRenderer();
+
+        static Renderer* createCircleRenderer(VkDevice& logicalDevice, VkPhysicalDevice& physicalDevice, VkGraphicsPipelineCreateInfo& createInfo);
+        static Renderer* createCubeRenderer(VkDevice& logicalDevice, VkPhysicalDevice& physicalDevice, VkGraphicsPipelineCreateInfo& createInfo);
 
         bool hasVertexBuffer;
         bool hasPushConstants;
@@ -23,5 +25,4 @@ class Renderer {
         VkDescriptorSet descriptorSet;
         uint32_t numVertices;
         VkDeviceSize offset;
-
 };

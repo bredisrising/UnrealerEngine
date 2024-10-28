@@ -10,3 +10,7 @@ vocab.txt
 *.o
 /.VSCodeCounter
 *.d
+/obj
+/dep
+/saves
+/temp_assets

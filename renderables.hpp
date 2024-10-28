@@ -11,15 +11,6 @@ struct Cube {
     float dim;
 };
 
-struct Circle {
-    glm::vec2 position;
-    glm::vec3 color;
-    float radius;
-
-    Circle(): position(0.0f, 0.0f), radius(20.0f){};
-    Circle(float x, float y, float z): position(x, y), radius(20.0f){};
-};
-
 struct Vertex {
     glm::vec3 position;
 

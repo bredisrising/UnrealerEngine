@@ -1,11 +1,12 @@
 #pragma once
 #include <vector>
-#include "object.hpp"
+#include "renderables.hpp"
 #include "colorgradient.hpp"
 #include "helper.hpp"
 #include <random>
 #include <math.h>
 #include <algorithm>
+#include <sstream>
 #include <fstream>
 #include "input.hpp"
 
@@ -37,6 +38,8 @@ class Fluid {
         void map(Circle* circles);
         std::vector<Particle> particles;
         float lastPhysicsTime = 0.0f;
+        Circle* mappedCircles; 
+        
     private:
         void resolvePPCollisions(int xCellIndex, int yCellIndex, int otherXCell, int otherYCell, bool doCollide);
         float smoothingKernel(float radius, float dist);
@@ -53,23 +56,23 @@ class Fluid {
         ColorGradient colorgradient;
 
 
-        float collisionDamping = .75f;
+        float collisionDamping = .5f;
         float smoothingRadius = .25f;
         const float mass = .1;
         float targetDensity = .275f;
         float pressureMultiplier = 0.05f;
 
-        float radius = 12.0f;
+        float radius = 15.0f;
         float normalizedRadius = radius / HEIGHT;
         float normalizedRadius2 = 2 * normalizedRadius;
 
-        float spawnRate = 240.0f;
+        float spawnRate = 750.0f;
         float minSpawnRate = 100.0f;
 
         float lastParticleCreateTime = 0.0f;
 
-        float physicsStepInterval = 1.0f/376.0f;
-        float minPhysicsStepInterval = 1.0f/376.0f;
+        float physicsStepInterval = 1.0f/640.0f;
+        float minPhysicsStepInterval = 1.0f/640.0f;
 
         std::vector<GridKey> keys;
         std::vector<int> startIndices;
@@ -82,7 +85,11 @@ class Fluid {
         float cellSize = normalizedRadius2 * 1; // SET TO TIME 1 FOR BEST FPS
         int numCells = 2.0f / cellSize;
 
-        Circle* mappedCircles; 
+        int numCellsY = 2.0f / cellSize;
+        int numCellsX = numCellsY * ASPECT_RATIO;
+
+
+
 
 
         // int numCells = 100;

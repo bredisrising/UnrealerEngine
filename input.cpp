@@ -23,6 +23,7 @@ void Input::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
         firstMouse = false;
     }
 
+
     realX = xpos / WIDTH * 2.0f - 1.0f;
     realY = ypos / HEIGHT * 2.0f - 1.0f;
 
@@ -36,7 +37,12 @@ void Input::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
     lastY = realY;
 }
 
+glm::vec2 Input::getCursorPos(){
+    return glm::vec2(realX*ASPECT_RATIO, realY);
+}
+
 glm::vec2 Input::getMousePos(){
+    // std::cout << x << ":" << y << " ";
     return glm::vec2(x, y);
 }
 

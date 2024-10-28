@@ -438,7 +438,6 @@ void API::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index) {
     
     for (int i = 0; i < Renderer::renderers.size(); i++){
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Renderer::renderers[i].pipeline);
-
         if (Renderer::renderers[i].hasPushConstants){
             vkCmdPushConstants(commandBuffer, Renderer::renderers[i].pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::vec4), &Camera::worldPosition);
             vkCmdPushConstants(commandBuffer, Renderer::renderers[i].pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, sizeof(glm::vec4), sizeof(glm::mat4), &Camera::rotationMatrix);

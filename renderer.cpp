@@ -1,32 +1,18 @@
 #include "renderer.hpp"
 #include "game.hpp"
 
-std::vector<Renderer> Renderer::renderers{};
-VkDevice Renderer::logicalDevice = nullptr;
-VkPhysicalDevice Renderer::physicalDevice = nullptr;
 
-Cube* Renderer::createCubeRenderer(VkGraphicsPipelineCreateInfo& createInfo) {
+std::vector<Renderer> Renderer::renderers;
+
+Renderer* Renderer::createCubeRenderer(VkDevice& logicalDevice, VkPhysicalDevice& physicalDevice, VkGraphicsPipelineCreateInfo& createInfo) {
     renderers.resize(renderers.size()+1);
+    Renderer* cubeRenderer = &renderers[renderers.size()-1];
+
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo {};
     inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-    // VkVertexInputAttributeDescription vertexPositionAttribute {};
-    // vertexPositionAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-    // vertexPositionAttribute.offset = offsetof(Cube, position);
-
-    // VkVertexInputAttributeDescription vertexDimAttribute {};
-    // vertexDimAttribute.location = 1;
-    // vertexDimAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-    // vertexDimAttribute.offset = offsetof(Cube, dim);
-
-    // VkVertexInputAttributeDescription attributeDescriptions[] = {vertexPositionAttribute, vertexDimAttribute};
-
-    // VkVertexInputBindingDescription vertexBindingDescription{};
-    // vertexBindingDescription.binding = 0;
-    // vertexBindingDescription.stride = sizeof(Circle);
-    // vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
     vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -70,7 +56,7 @@ Cube* Renderer::createCubeRenderer(VkGraphicsPipelineCreateInfo& createInfo) {
         logicalDevice, physicalDevice, maxBufferSize, 
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        Renderer::renderers[Renderer::renderers.size()-1].otherBuffer, bufferMemory
+        cubeRenderer->otherBuffer, bufferMemory
     );
 
     // Descriptor Creation  
@@ -108,11 +94,11 @@ Cube* Renderer::createCubeRenderer(VkGraphicsPipelineCreateInfo& createInfo) {
     descriptorSetAllocateInfo.descriptorSetCount = 1;
     descriptorSetAllocateInfo.pSetLayouts = &descriptorSetLayout;
     
-    vkAllocateDescriptorSets(logicalDevice, &descriptorSetAllocateInfo, &Renderer::renderers[Renderer::renderers.size()-1].descriptorSet);
+    vkAllocateDescriptorSets(logicalDevice, &descriptorSetAllocateInfo, &cubeRenderer->descriptorSet);
 
 
     VkDescriptorBufferInfo bufferInfo {};
-    bufferInfo.buffer = renderers[renderers.size()-1].otherBuffer;
+    bufferInfo.buffer = cubeRenderer->otherBuffer;
     bufferInfo.offset = 0;
     bufferInfo.range = VK_WHOLE_SIZE;
 
@@ -121,7 +107,7 @@ Cube* Renderer::createCubeRenderer(VkGraphicsPipelineCreateInfo& createInfo) {
     write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     write.dstBinding = 0;
-    write.dstSet = Renderer::renderers[Renderer::renderers.size()-1].descriptorSet;
+    write.dstSet = cubeRenderer->descriptorSet;
     write.pBufferInfo = &bufferInfo;
 
 
@@ -139,49 +125,55 @@ Cube* Renderer::createCubeRenderer(VkGraphicsPipelineCreateInfo& createInfo) {
     pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
     pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
     
-    vkCreatePipelineLayout(logicalDevice, &pipelineLayoutCreateInfo, nullptr, &Renderer::renderers[Renderer::renderers.size()-1].pipelineLayout);
-    createInfo.layout = Renderer::renderers[Renderer::renderers.size()-1].pipelineLayout;
+    vkCreatePipelineLayout(logicalDevice, &pipelineLayoutCreateInfo, nullptr, &cubeRenderer->pipelineLayout);
+    createInfo.layout = cubeRenderer->pipelineLayout;
 
-    Renderer::renderers[Renderer::renderers.size()-1].hasDescriptorSets = true;
-    Renderer::renderers[Renderer::renderers.size()-1].hasPushConstants = true;
+    cubeRenderer->hasDescriptorSets = true;
+    cubeRenderer->hasPushConstants = true;
 
     vkUpdateDescriptorSets(logicalDevice, 1, &write, 0, nullptr);
 
-    std::cout << "Cube Pipeline " << string_VkResult(vkCreateGraphicsPipelines(logicalDevice, nullptr, 1, &createInfo, nullptr, &renderers[renderers.size()-1].pipeline)) << std::endl;
+    std::cout << "Cube Pipeline " << string_VkResult(vkCreateGraphicsPipelines(logicalDevice, nullptr, 1, &createInfo, nullptr, &cubeRenderer->pipeline)) << std::endl;
 
-    Cube* brutha;
-    vkMapMemory(logicalDevice, bufferMemory, 0, maxBufferSize, 0, (void**)&brutha);
+    // Cube* brutha;
+    // vkMapMemory(logicalDevice, bufferMemory, 0, maxBufferSize, 0, (void**)&brutha);
 
-    return brutha;
+    return cubeRenderer;
 }
 
-void Renderer::createCircleRenderer(VkGraphicsPipelineCreateInfo& createInfo) {
+Renderer* Renderer::createCircleRenderer(VkDevice& logicalDevice, VkPhysicalDevice& physicalDevice, VkGraphicsPipelineCreateInfo& createInfo) {
     renderers.resize(renderers.size()+1);
-    
+    Renderer* circleRenderer = &renderers[renderers.size()-1];
+
+
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo {};
     inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 
+    // should generalize this? to the transforms
     VkVertexInputAttributeDescription vertexPositionAttribute {};
-    vertexPositionAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-    vertexPositionAttribute.offset = offsetof(Circle, position);
+    vertexPositionAttribute.binding = 0;
+    vertexPositionAttribute.location = 0;
+    vertexPositionAttribute.format = VK_FORMAT_R32G32_SFLOAT;
+    vertexPositionAttribute.offset = offsetof(Transform2D, position);
 
     VkVertexInputAttributeDescription vertexColorAttribute {};
+    vertexColorAttribute.binding = 0;
     vertexColorAttribute.location = 1;
-    vertexColorAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-    vertexColorAttribute.offset = offsetof(Circle, color);
+    vertexColorAttribute.format = VK_FORMAT_R32_SFLOAT;
+    vertexColorAttribute.offset = offsetof(Transform2D, rotation);
 
     VkVertexInputAttributeDescription vertexRadiusAttribute;
     vertexRadiusAttribute.binding = 0;
     vertexRadiusAttribute.location = 2;
     vertexRadiusAttribute.format = VK_FORMAT_R32_SFLOAT;
-    vertexRadiusAttribute.offset = offsetof(Circle, radius); 
+    vertexRadiusAttribute.offset = offsetof(Transform2D, scale); 
 
     VkVertexInputAttributeDescription attributeDescriptions[] = {vertexPositionAttribute, vertexColorAttribute, vertexRadiusAttribute};
 
     VkVertexInputBindingDescription vertexBindingDescription{};
     vertexBindingDescription.binding = 0;
-    vertexBindingDescription.stride = sizeof(Circle);
+    vertexBindingDescription.stride = sizeof(Transform2D);
     vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
@@ -215,7 +207,7 @@ void Renderer::createCircleRenderer(VkGraphicsPipelineCreateInfo& createInfo) {
     pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
     // Renderer::renderers[Renderer::renderers.size()-1].pipelineLayout = {};
-    vkCreatePipelineLayout(logicalDevice, &pipelineLayoutCreateInfo, nullptr, &Renderer::renderers[Renderer::renderers.size()-1].pipelineLayout);
+    vkCreatePipelineLayout(logicalDevice, &pipelineLayoutCreateInfo, nullptr, &circleRenderer->pipelineLayout);
     
 
     createInfo.stageCount = 2;
@@ -223,11 +215,13 @@ void Renderer::createCircleRenderer(VkGraphicsPipelineCreateInfo& createInfo) {
     createInfo.pInputAssemblyState = &inputAssemblyCreateInfo;
     createInfo.pRasterizationState = &rasterizationCreateInfo;
     createInfo.pVertexInputState = &vertexInputStateCreateInfo;
-    createInfo.layout = Renderer::renderers[Renderer::renderers.size()-1].pipelineLayout;
+    createInfo.layout = circleRenderer->pipelineLayout;
 
 
-    Renderer::renderers[Renderer::renderers.size()-1].hasVertexBuffer = true;
+    circleRenderer->hasVertexBuffer = true;
 
-    std::cout << "Circle Pipeline " << string_VkResult(vkCreateGraphicsPipelines(logicalDevice, nullptr, 1, &createInfo, nullptr, &renderers[renderers.size()-1].pipeline)) << std::endl;
+    std::cout << "Circle Pipeline " << string_VkResult(vkCreateGraphicsPipelines(logicalDevice, nullptr, 1, &createInfo, nullptr, &circleRenderer->pipeline)) << std::endl;
+
+    return circleRenderer;
 
 }

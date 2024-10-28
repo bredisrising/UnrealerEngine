@@ -3,8 +3,10 @@
 #include <iostream>
 
 void Fluid::map(Circle* circles){
+    saved = false;
     mappedCircles = circles;
-    Helper::loadImage("./akshai.bmp", image);
+    Helper::loadImage("./ankie.bmp", image);
+    std::cout << "loaded image" << std::endl;
 
     endParticleInfo.resize(maxParticles*2);
     // setParticleColors.resize(maxParticles*3);
@@ -12,14 +14,25 @@ void Fluid::map(Circle* circles){
     inFile.read(reinterpret_cast<char*>(endParticleInfo.data()), maxParticles*2*sizeof(float));
     inFile.close();
 
-    // float xRatio = (float) image.width / numCells;
+    std::cout << "loaded positions" << std::endl;
+
+    // float xRatio = (float) image.width / numCells; 
     // float yRatio = (float) image.height / numCells;
 
     for (int i = 0; i < maxParticles; i++) {
         glm::vec2 pos{};
+
         float x = endParticleInfo[i*2]*.5+.5;
         float y = 1.0-(endParticleInfo[i*2+1]*.5+.5);
-        // pos[2] = endParticleInfo[i*3+2];
+        
+        std::stringstream xs;
+        std::stringstream ys;
+
+        xs << x;
+        ys << y;
+
+        if (xs.str() == "nan") continue;
+        if (ys.str() == "nan") continue;
 
         glm::vec3 color = image.pixels[(int)(y*(image.height-1))*(image.width) + (int)(x*(image.width-1))];
 
@@ -28,20 +41,22 @@ void Fluid::map(Circle* circles){
         // endParticleInfo[i*3+2] = color[2];
         mappedCircles[i].color = color;
     }
+    std::cout << "Mapped " << std::endl;
 }
 
 
 Fluid::Fluid() {
-    int num = numCells*numCells*1.2;
+    int num = numCellsX*numCellsY*1.1f;
     std::cout << "PARTICLE COUNT " << num << std::endl;
     particles.resize(num);
     keys.resize(num);
-    startIndices.resize(numCells * numCells + 1);
+    startIndices.resize(numCellsX * numCellsY + 1);
     maxParticles = num;
+    numParticles = 0;
 
 
     std::cout << "Normalized Radius * 2 " << normalizedRadius2 << std::endl;
-    std::cout << "Num Cells " << numCells << " by " << numCells << std::endl;
+    std::cout << "Num Cells " << numCellsX << " by " << numCellsY << std::endl;
     std::cout << "Cell Size " << cellSize << " by " << cellSize << std::endl;
 
 
@@ -57,12 +72,12 @@ bool Fluid::compareHashKey(GridKey& key1, GridKey& key2) {
 
 void Fluid::updateSpatialLookup() {
     for (int i = 0; i < numParticles; i++) {
-        int gridIndexX = particles[i].position[0] / cellSize + (numCells/2);
-        int gridIndexY = particles[i].position[1] / cellSize + (numCells/2);
+        int gridIndexX = particles[i].position[0] / cellSize + (numCellsX/2);
+        int gridIndexY = particles[i].position[1] / cellSize + (numCellsY/2);
 
-        int cellKey = gridIndexY * numCells + gridIndexX;
+        int cellKey = gridIndexY * numCellsX + gridIndexX;
 
-        cellKey = glm::clamp(cellKey, 0, numCells*numCells-1);
+        cellKey = glm::clamp(cellKey, 0, numCellsX*numCellsY-1);
 
         //std::cout << particles[i].position[0] / gridSize + (numCells/2) << " " << particles[i].position[1] / gridSize + (numCells/2) << " ";
         keys[i] = GridKey{cellKey, i};
@@ -96,7 +111,7 @@ void Fluid::createParticle() {
     mappedCircles[newIndex].position[0] = -BOUNDX + normalizedRadius2 + 0.01;
     mappedCircles[newIndex].position[1] = -.8+spawnPos*(normalizedRadius2+.002);   
     particles[newIndex].position = mappedCircles[newIndex].position;
-    particles[newIndex].positionLast[0] = mappedCircles[newIndex].position[0]-0.0075;
+    particles[newIndex].positionLast[0] = mappedCircles[newIndex].position[0]-0.010;
     particles[newIndex].positionLast[1] = mappedCircles[newIndex].position[1]; 
 
     // glm::vec3 color;
@@ -123,8 +138,8 @@ void Fluid::createParticle() {
 void Fluid::doPhysicsStep(){
     updateSpatialLookup();
     
-    for (int i = 0; i < numCells; i++){
-        for (int j = 0; j < numCells; j++){
+    for (int i = 0; i < numCellsX; i++){
+        for (int j = 0; j < numCellsY; j++){
             resolvePPCollisions(i, j, i, j, false);
             resolvePPCollisions(i, j, i+1, j-1, false);
             resolvePPCollisions(i, j, i-1, j+1, false);
@@ -161,15 +176,15 @@ void Fluid::doPhysicsStep(){
 
         particles[i].positionLast = particles[i].position;
 
-        if (glm::length(displacement) > .0025f){
-            displacement = glm::normalize(displacement) * .0025f;
-        }
-
-        // if (glm::length(particles[i].position - Input::getMousePos()) < .5) {
-        //     particles[i].acceleration += Input::getMouseMove() * 5000.0f;
+        // if (glm::length(displacement) > .0025f){
+        //     displacement = glm::normalize(displacement) * .0025f;
         // }
 
-        particles[i].position = particles[i].position + displacement + (particles[i].acceleration - displacement*60.0f) * (physicsStepInterval * physicsStepInterval);
+        if (glm::length(particles[i].position - Input::getCursorPos()) < .35) {
+            particles[i].acceleration += Input::getMouseMove() * 2000.0f;
+        }
+
+        particles[i].position = particles[i].position + displacement + (particles[i].acceleration - displacement*120.0f) * (physicsStepInterval * physicsStepInterval);
         particles[i].acceleration = {0.0f, 0.8f};
 
         mappedCircles[i].position[0] = particles[i].position[0];
@@ -181,6 +196,7 @@ void Fluid::doPhysicsStep(){
 }
 
 void Fluid::step() {
+
     // float timeElapsedSinceLastPhysicsStep = Time::currentTime() - lastPhysicsTime;
     float timeElapsedSinceLastParticleCreation = Time::currentTime() - lastParticleCreateTime;
 
@@ -206,10 +222,11 @@ void Fluid::step() {
     //     lastPhysicsTime += physicsStepInterval;
     // }
 
+    
     if (numParticles < maxParticles){
         for (int i = 0; i < numParticlesToCreate; i++){
             if (numParticles < maxParticles){
-                lastParticleCreateTime = Time::currentTime();
+                lastParticleCreateTime += (1.0f / spawnRate);
                 createParticle();
             }else{
                 break;
@@ -220,14 +237,16 @@ void Fluid::step() {
     
     // no interval adaption - SIMULTATION SHOULD SLOW DOWN
     // if (numParticles < maxParticles && timeElapsedSinceLastParticleCreation > (1.0f / spawnRate)) {
-    //     lastParticleCreateTime += 1.0f/spawnRate;
+    //     lastParticleCreateTime = Time::currentTime();
     //     createParticle();
-    // ) 
 
-    if (!saved && numParticles >= maxParticles && ((Time::currentTime() - lastParticleCreateTime) > 5.0f)) {
+    // std::cout << !saved << " " << (numParticles >= maxParticles) << " " << ((Time::currentTime() - lastParticleCreateTime) > 5.0f) << "  ";
+
+    if (!saved && (numParticles >= maxParticles) && ((Time::currentTime() - lastParticleCreateTime) > 7.5f)) {
+        std::cout << "Saving" << std::endl;
         std::vector<float> positions(maxParticles*2);
         for (int i = 0; i < numParticles; i++) {
-            positions[i*2] = particles[i].position[0];
+            positions[i*2] = particles[i].position[0] / ASPECT_RATIO;
             positions[i*2+1] = particles[i].position[1];
             // positions[i*3+2] = particles[i].position[2];
         }
@@ -248,13 +267,13 @@ void Fluid::step() {
 }
 
 void Fluid::resolvePPCollisions (int xCellIndex, int yCellIndex, int otherXCell, int otherYCell, bool doCollide) {    
-    if (xCellIndex < 0 || xCellIndex > numCells-1)return;
-    if (yCellIndex < 0 || yCellIndex > numCells-1)return;
-    if (otherXCell < 0 || otherXCell > numCells-1)return;
-    if (otherYCell < 0 || otherYCell > numCells-1)return;
+    if (xCellIndex < 0 || xCellIndex > numCellsX-1)return;
+    if (yCellIndex < 0 || yCellIndex > numCellsY-1)return;
+    if (otherXCell < 0 || otherXCell > numCellsX-1)return;
+    if (otherYCell < 0 || otherYCell > numCellsY-1)return;
 
-    int cellkey = yCellIndex * numCells + xCellIndex;
-    int otherkey = otherYCell * numCells + otherXCell;
+    int cellkey = yCellIndex * numCellsX + xCellIndex;
+    int otherkey = otherYCell * numCellsX + otherXCell;
 
 
     int thisStart = startIndices[cellkey];
@@ -297,8 +316,8 @@ void Fluid::resolvePPCollisions (int xCellIndex, int yCellIndex, int otherXCell,
 
                 // std::cout << thisParticleNorm << " ";
 
-                // particles[thispi].positionLast = particles[thispi].position - (collisionTangent * thisParticleTan + collisionNormal * thatParticleNorm);
-                // particles[thatpi].positionLast = particles[thatpi].position - (collisionTangent * thatParticleTan + collisionNormal * thisParticleNorm);
+                // particles[thispi].positionLast = particles[thispi].position - collisionDamping * (collisionTangent * thisParticleTan + collisionNormal * thatParticleNorm) - glm::vec2(Random::getRandom(), Random::getRandom()) * 0.00001f;
+                // particles[thatpi].positionLast = particles[thatpi].position - collisionDamping * (collisionTangent * thatParticleTan + collisionNormal * thisParticleNorm) - glm::vec2(Random::getRandom(), Random::getRandom()) * 0.00001f;
             }
             // particles[thispi].positionLast -= collisionNormal * smoothingKernel(normaliedRadius2*4, distance)*.00003f;
             // particles[thatpi].positionLast += collisionNormal * smoothingKernel(normaliedRadius2*4, distance)*.00003f;

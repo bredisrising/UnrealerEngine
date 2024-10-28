@@ -51,6 +51,8 @@ void Helper::loadImage(const std::string& fileName, Helper::Image& image) {
         // std::cout << imageColors[i][0] << " ";
     }
 
+    
+
 }
 
 

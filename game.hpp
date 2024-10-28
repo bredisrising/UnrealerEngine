@@ -11,13 +11,21 @@
 #include <glfw/glfw3.h>
 #include <random>
 
-constexpr float HEIGHT = 950.f;
-constexpr float WIDTH = 950.f;
+constexpr float HEIGHT = 1200.0f;
+constexpr float WIDTH = 1920.f;
+
+constexpr float ASPECT_RATIO = WIDTH / HEIGHT;
 
 constexpr float BOUNDX = WIDTH / HEIGHT;
 constexpr float BOUNDY = 1.0f;
 
 constexpr int FPS = 240;
+constexpr float PHYSICS_STEP = 1.0/FPS;
+
+
+// 4 floats = 16 bytes * 1000000 = 16000000 bytes = 16 mega bytes - not too bad i think
+constexpr uint32_t INITIAL_TRANSFORM2D_BUFFER_SIZE = 1000000; // a million transforms preallocated onto gpu and cpu
+constexpr uint32_t INITIAL_TRANSFORM_BUFFER_SIZE = 1000000;
 
 class Camera {
     public:
@@ -42,7 +50,7 @@ class Camera {
 class Random {
     public:
         static float getRandom();
-
+        
     private:
         static std::random_device rd;
         static std::mt19937 gen;

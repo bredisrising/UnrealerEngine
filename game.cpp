@@ -2,7 +2,7 @@
 
 float Time::deltatime = 0.0f;
 std::random_device Random::rd;
-std::mt19937 Random::gen(Random::rd());
+std::mt19937 Random::gen(0);
 std::uniform_real_distribution<> Random::dis(-1.0, 1.0);
 
 glm::vec4 Camera::worldPosition = {0.0f, 0.0f, 0.0f, 0.0f};
