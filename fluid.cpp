@@ -70,7 +70,7 @@ bool Fluid::compareHashKey(GridKey& key1, GridKey& key2) {
     return key1.hashKey < key2.hashKey;
 }
 
-void Fluid::updateSpatialLookup() {
+void Fluid::updateSpatialLookup(){
     for (int i = 0; i < numParticles; i++) {
         int gridIndexX = particles[i].position[0] / cellSize + (numCellsX/2);
         int gridIndexY = particles[i].position[1] / cellSize + (numCellsY/2);
@@ -266,7 +266,7 @@ void Fluid::step() {
     // }
 }
 
-void Fluid::resolvePPCollisions (int xCellIndex, int yCellIndex, int otherXCell, int otherYCell, bool doCollide) {    
+void Fluid::resolvePPCollisions (int xCellIndex, int yCellIndex, int otherXCell, int otherYCell) {    
     if (xCellIndex < 0 || xCellIndex > numCellsX-1)return;
     if (yCellIndex < 0 || yCellIndex > numCellsY-1)return;
     if (otherXCell < 0 || otherXCell > numCellsX-1)return;

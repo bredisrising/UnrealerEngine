@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+#include "game.hpp"
 #include "renderer.hpp"
 #include "api.hpp"
 #include <map>
@@ -17,8 +19,8 @@ class ISystemArray {
 
 class IComponentArray {
     public:
-        virtual void addEntity(uint32_t entityID);
-        virtual void removeEntity(uint32_t entityID);
+        virtual void addEntity(uint32_t entityID) = 0;
+        virtual void removeEntity(uint32_t entityID) = 0;
         virtual ~IComponentArray() = default;
 };
 
@@ -58,15 +60,11 @@ class ComponentArray : public IComponentArray {
 
             numCurrentlyUsed--;
         }
-
-        std::unordered_map<uint32_t, uint32_t>& getEntityToIndex() {
-            return entityToIndex;
-        }
-
-    private:
+        
         std::unordered_map<uint32_t, uint32_t> indexToEntity;
         std::unordered_map<uint32_t, uint32_t> entityToIndex;
-         
+
+    private:
 };
 
 
@@ -90,7 +88,6 @@ class Transform2DSystem: public ISystemArray {
         Engine& engine;
 };
 
-
 class CircleRendererSystem : public ISystemArray {
     public:
         CircleRendererSystem(Engine& engine, ComponentArray<CircleRenderer>& circleRenderers);
@@ -105,7 +102,34 @@ class CircleRendererSystem : public ISystemArray {
 
 class GridBasedCollisionSystem : public ISystemArray {
     public:
+        GridBasedCollisionSystem(Engine& engine, ComponentArray<Transform2D>& gridColliders);
+        void step();
     private:
+        
+        void resolveCellCollisions(int xCellIndex, int yCellIndex, int otherXCell, int otherYCell);
+
+        struct GridKey {
+            int entityIndex;
+            int hashKey;
+            GridKey(int h, int ppi): hashKey(h), entityIndex(ppi) {};
+            GridKey(): hashKey(INT_MAX), entityIndex(0) {};
+        };
+        
+        static bool compareHashKey(GridKey& key1, GridKey& key2);
+
+        std::vector<GridKey> keys;
+        std::vector<int> startIndices;
+        
+        Engine& engine;
+        ComponentArray<Transform2D>& gridColliders;
+        Transform2D* gridCollidersPointer;
+
+        
+        int numCellsX;
+        int numCellsY;
+        float cellSize;
+        
+        void updateCellLookup();
 };
 
 
@@ -117,23 +141,24 @@ class ECSManager {
         void step();
         uint32_t createEntity(std::vector<char> componentIDs);
         uint32_t numCurrentEntities;
-        const uint32_t numComponentsToPreallocate;
-
-    private:
+        uint32_t numComponentsToPreallocate;
+       
         // systems
         Transform2DSystem* transform2DSystem;
         Rigidbody2DSystem* rigidbody2DSystem;
         CircleRendererSystem* circleRendererSystem;
-
+        GridBasedCollisionSystem* gridBasedCollisionSystem;
 
         //components
         ComponentArray<Transform2D>* transform2Ds;
         ComponentArray<Rigidbody2D>* rigidbody2Ds;
         ComponentArray<Material>* materials;
-        ComponentArray<CircleCollider>* circleColliders;
+        ComponentArray<Collider2D>* gridColliders;
         ComponentArray<CircleRenderer>* circleRenderers;
 
         // vectors
         std::vector<ISystemArray*> systemPointers;
         std::vector<IComponentArray*> componentPointers;
+
+    
 };

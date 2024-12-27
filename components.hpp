@@ -24,9 +24,23 @@ struct Rigidbody2D {
     Rigidbody2D(): lastPosition(), velocity(), acceleration(0.0, 0.8), drag(0.0) {}
 };
 
-struct CircleCollider {
-    float radius;
+
+
+// general collider for tracking
+struct Collider2D {
+    enum class Type {Circle, Box};
+    Type type;
+    union { 
+        struct {float radius;} circle;
+        struct {glm::vec2 topleft; glm::vec2 topright;} box;
+    };
 };
+
+// type of collision system
+struct GridBasedColliderSystemTagComponent { 
+
+};
+
 
 struct CircleRenderer {
 
