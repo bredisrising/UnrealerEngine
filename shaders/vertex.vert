@@ -6,7 +6,7 @@ layout(location = 2) in float scale;
 
 layout(location = 0) out vec3 fragColor;
 
-float ratio = 1200.0/1920.0;
+float ratio = 1000.0/1000.0;
 
 void main() {
     gl_Position = vec4(inPosition[0] * ratio, inPosition[1], 1.0, 1.0);

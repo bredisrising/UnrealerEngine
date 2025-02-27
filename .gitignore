@@ -14,3 +14,8 @@ vocab.txt
 /dep
 /saves
 /temp_assets
+/fluid_stuff
+/build
+CMakeLists.txt
+notes.txt
+/lib

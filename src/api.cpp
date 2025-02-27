@@ -2,21 +2,6 @@
 #include <iostream>
 #include <vector>
 
-// void API::initVulkan(){
-//     createInstance();
-//     createSurface();
-//     pickPhysicalDevice();
-//     createLogicalDevice();
-//     createSwapChain();
-//     createImageViews();
-//     createRenderPass();
-//     createGraphicsPipeline();
-//     createFramebuffers();
-//     createCommandPool();
-//     createCommandBuffers();
-//     createSyncObjects();
-// }
-
 
 API::API(GLFWwindow* window): window(window), currentFrame(0) {
 
@@ -27,6 +12,18 @@ void API::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryProp
 }
 
 void API::initializeVulkan() {
+
+    // check available layers
+    uint32_t numLayers;
+    vkEnumerateInstanceLayerProperties(&numLayers, nullptr);
+    VkLayerProperties* layerProperties = new VkLayerProperties[numLayers];
+    vkEnumerateInstanceLayerProperties(&numLayers, layerProperties);
+    for (int i = 0; i < numLayers; i++) {
+        std::cout << layerProperties[i].layerName << std::endl;
+    }
+    std::cout << std::endl;
+    
+   
     const std::vector<const char*> enabledLayers = {
         "VK_LAYER_KHRONOS_validation"
     };
@@ -60,20 +57,26 @@ void API::initializeVulkan() {
     vkEnumeratePhysicalDevices(instance, &numPhysicalDevices, devices);
     std::cout << "Num Physical Devices: " << numPhysicalDevices << std::endl;
 
-    // for (int deviceIndex = 0; deviceIndex < numPhysicalDevices; deviceIndex++) {
-    //     VkPhysicalDeviceProperties deviceProperties;
-    //     vkGetPhysicalDeviceProperties(devices[deviceIndex], &deviceProperties);
+    for (int deviceIndex = 0; deviceIndex < numPhysicalDevices; deviceIndex++) {
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(devices[deviceIndex], &deviceProperties);
 
-    //     std::cout << deviceProperties.deviceName << std::endl;
-    // }
+        std::cout << deviceProperties.deviceName << std::endl;
 
-    physicalDevice = devices[1]; //rtx 4070 is the second one
+        if (deviceProperties.deviceName[0] == 'N') {
+            physicalDevice = devices[deviceIndex];
+        }
+    }
     delete[] devices;
+    devices = nullptr;
 
+    
     VkPhysicalDeviceProperties deviceProperties;
     vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
-    std::cout << "Chosen: " << deviceProperties.deviceName << std::endl;
+    std::cout << "Chosen: " << deviceProperties.deviceName << "\n" << std::endl;
     
+    
+    //  
     uint32_t numFamilies;
     
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &numFamilies, nullptr);
@@ -100,6 +103,7 @@ void API::initializeVulkan() {
         
         std::cout << std::endl;
     }
+    std::cout << std::endl;
 
     graphicsQueueIndex = 0;
     presentQueueIndex = 0;
@@ -113,18 +117,13 @@ void API::initializeVulkan() {
     graphicsQueueCI.queueCount = 1;
     graphicsQueueCI.pQueuePriorities = &queuePriority;
 
-    // VkDeviceQueueCreateInfo presentQueueCI{};
-    // presentQueueCI.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    // presentQueueCI.queueFamilyIndex = presentQueueIndex;
-    // presentQueueCI.queueCount = 1;
-    // presentQueueCI.pQueuePriorities = &queuePriority;
-
     VkDeviceQueueCreateInfo queueCreateInfos[] = {graphicsQueueCI};
 
-    //device
     const std::vector<const char*> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
+
+
 
     VkDeviceCreateInfo deviceCreateInfo{};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -136,7 +135,8 @@ void API::initializeVulkan() {
     vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &logicalDevice);
 
     vkGetDeviceQueue(logicalDevice, graphicsQueueIndex, 0, &graphicsQueue);
-    // vkGetDeviceQueue(logicalDevice, presentQueueIndex, 0, &presentQueue);
+
+
 
     //swapchain
     VkSwapchainCreateInfoKHR swapchainCreateInfo{};
@@ -155,7 +155,7 @@ void API::initializeVulkan() {
     swapchainCreateInfo.imageArrayLayers = 1;
     swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swapchainCreateInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR; // triple buffering
-    swapchainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    swapchainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR; // does nothing
     swapchainCreateInfo.clipped = VK_TRUE;
     
     uint32_t queueFamilyIndices[] = {graphicsQueueIndex};
@@ -229,6 +229,8 @@ void API::initializeVulkan() {
 
     std::cout << "Render Pass Creation " << string_VkResult(vkCreateRenderPass(logicalDevice, &renderPassCreateInfo, nullptr, &renderPass)) << std::endl;
 
+
+
     // graphics pipeline
     viewport = {};
     viewport.x = 0.0f;
@@ -250,14 +252,12 @@ void API::initializeVulkan() {
     viewportStateCreateInfo.scissorCount = 1;
     viewportStateCreateInfo.pScissors = &scissor;
 
-
     rasterizationCreateInfo = {};
     rasterizationCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizationCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizationCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizationCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizationCreateInfo.lineWidth = 1.0;
-    
 
     colorBlendAttachment = {};
     colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -278,6 +278,8 @@ void API::initializeVulkan() {
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
     multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+
 
     // minimal graphics pipeline
     // input assembly
@@ -321,7 +323,6 @@ void API::initializeVulkan() {
     createCommandBuffers();
 
     createSyncObjects();
-
 }
 
 void API::drawframe() {
@@ -368,6 +369,8 @@ void API::drawframe() {
 
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
+
+
 
 void API::createSyncObjects(){
     imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);

@@ -11,16 +11,16 @@
 #include <glfw/glfw3.h>
 #include <random>
 
-constexpr float HEIGHT = 720.0f;
-constexpr float WIDTH = 1280.f;
+constexpr float HEIGHT = 1000.0f;
+constexpr float WIDTH = 1000.f;
 
 constexpr float ASPECT_RATIO = WIDTH / HEIGHT;
 
 constexpr float BOUNDX = WIDTH / HEIGHT;
 constexpr float BOUNDY = 1.0f;
 
-constexpr int FPS = 240;
-constexpr float PHYSICS_STEP = 1.0f/240.0f;
+constexpr int FPS = 144;
+constexpr float PHYSICS_STEP = 1.0f/360.0f;
 
 
 // 4 floats = 16 bytes * 1000000 = 16000000 bytes = 16 mega bytes - not too bad i think

@@ -1,10 +1,12 @@
 #define GLFW_INCLUDE_VULKAN
 #include "GLFW/glfw3.h"
-#include "api.hpp"
+
 #include <iostream>
 #include <vector>
 #include <string>
 #include <sstream>
+
+#include "api.hpp"
 #include "engine.hpp"
 #include "ecsmanager.hpp"
 #include "input.hpp"
@@ -13,7 +15,6 @@
 #include "game.hpp"
 
 int main() {
-
     std::vector<float> fpsValues;
 
     if(!glfwInit()){
@@ -86,6 +87,7 @@ int main() {
 
             Time::deltatime = currentTime - previousTime;
 
+            
             std::stringstream ss;
             ss << "Unrealer Engine " << "FPS: " << fps << " Average FPS: " << averageFPS << " Num Particles: " << " Current Time: " << Time::currentTime();
 

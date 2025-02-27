@@ -30,13 +30,13 @@ Renderer* Renderer::createCubeRenderer(VkDevice& logicalDevice, VkPhysicalDevice
 
     VkPipelineShaderStageCreateInfo vertexShader{};
     vertexShader.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vertexShader.module = Helper::createShaderModule(Helper::readFile("./shaders/compiled/cubevert.spv"), logicalDevice);
+    vertexShader.module = Helper::createShaderModule(Helper::readFile("./bin_shaders/cubevert.spv"), logicalDevice);
     vertexShader.stage = VK_SHADER_STAGE_VERTEX_BIT;
     vertexShader.pName = "main";
 
     VkPipelineShaderStageCreateInfo fragShader{};
     fragShader.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    fragShader.module = Helper::createShaderModule(Helper::readFile("./shaders/compiled/cubefrag.spv"), logicalDevice);
+    fragShader.module = Helper::createShaderModule(Helper::readFile("./bin_shaders/cubefrag.spv"), logicalDevice);
     fragShader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     fragShader.pName = "main";
     VkPipelineShaderStageCreateInfo shaderStageCreateInfos[] = {vertexShader, fragShader};
@@ -192,13 +192,13 @@ Renderer* Renderer::createCircleRenderer(VkDevice& logicalDevice, VkPhysicalDevi
 
     VkPipelineShaderStageCreateInfo vertexShader{};
     vertexShader.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    vertexShader.module = Helper::createShaderModule(Helper::readFile("./shaders/compiled/vert.spv"), logicalDevice);
+    vertexShader.module = Helper::createShaderModule(Helper::readFile("./bin_shaders/vert.spv"), logicalDevice);
     vertexShader.stage = VK_SHADER_STAGE_VERTEX_BIT;
     vertexShader.pName = "main";
 
     VkPipelineShaderStageCreateInfo fragShader{};
     fragShader.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    fragShader.module = Helper::createShaderModule(Helper::readFile("./shaders/compiled/frag.spv"), logicalDevice);
+    fragShader.module = Helper::createShaderModule(Helper::readFile("./bin_shaders/frag.spv"), logicalDevice);
     fragShader.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     fragShader.pName = "main";
     VkPipelineShaderStageCreateInfo shaderStageCreateInfos[] = {vertexShader, fragShader};
